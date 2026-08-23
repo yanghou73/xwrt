@@ -55,6 +55,14 @@ on:
         description: 'x64 LXC 支持（仅 x64 有效）'
         type: boolean
         default: false
+      x64_nikki:
+        description: 'x64 Nikki 代理面板（基于 Mihomo，仅 x64 有效）'
+        type: boolean
+        default: false
+      x64_homeproxy:
+        description: 'x64 HomeProxy 代理面板（基于 sing-box，仅 x64 有效）'
+        type: boolean
+        default: false
       x64_filesystem:
         description: 'x64 文件系统（仅 x64 有效）'
         type: choice
@@ -162,6 +170,8 @@ jobs:
       x64_variant: ${{ inputs.x64_variant }}
       x64_docker: ${{ inputs.x64_docker }}
       x64_lxc: ${{ inputs.x64_lxc }}
+      x64_nikki: ${{ inputs.x64_nikki }}
+      x64_homeproxy: ${{ inputs.x64_homeproxy }}
       x64_filesystem: ${{ inputs.x64_filesystem }}
       wrt_ip: ${{ inputs.wrt_ip }}
       theme: ${{ inputs.theme }}

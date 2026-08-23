@@ -3,10 +3,11 @@
 # x64 高大全包拉取脚本
 # 基于 bleach1991/lede 的 50+ 包列表
 # 验证状态：⏳ 待验证
+# 注意：部分仓库可能因作者删除/改名而 clone 失败，失败不中断编译
 # ============================================================
 
-# 注：此脚本在 x64 平台使用，包量巨大
-# 建议仅在 full 模式下调用
+# 注：此脚本在 x64 平台 full 模式下使用，包量巨大
+# standard / minimal 模式不调用此脚本
 
 UPDATE_PACKAGE() {
   local PKG_NAME=$1
@@ -28,7 +29,11 @@ UPDATE_PACKAGE() {
     fi
   done
 
-  git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git"
+  # clone 失败不中断（部分仓库可能已删除/改名）
+  git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git" || {
+    echo "警告：克隆失败 $PKG_REPO ($PKG_BRANCH)，跳过"
+    return 0
+  }
 
   if [[ "$PKG_SPECIAL" == "pkg" ]]; then
     find ./$REPO_NAME/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune -exec cp -rf {} ./ \;
@@ -44,7 +49,7 @@ UPDATE_PACKAGE() {
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git || true
 
 # ============================================================
 # DNS
@@ -59,62 +64,67 @@ UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master"
 # ============================================================
 UPDATE_PACKAGE "design" "0x676e67/luci-theme-design" "main"
 UPDATE_PACKAGE "edge" "garypang13/luci-theme-edge" "master"
-UPDATE_PACKAGE "atmaterial" "openwrt-develop/luci-theme-atmaterial" "master"
-UPDATE_PACKAGE "rosy" "rosywrt/luci-theme-rosy" "master"
-UPDATE_PACKAGE "neobird" "thinktip/luci-theme-neobird" "master"
-UPDATE_PACKAGE "opentopd" "sirpdboy/luci-theme-opentopd" "master"
-UPDATE_PACKAGE "infinityfreedom" "xiaoqingfengATGH/luci-theme-infinityfreedom" "master"
+# UPDATE_PACKAGE "atmaterial" "openwrt-develop/luci-theme-atmaterial" "master"  # 仓库可能已删除
+# UPDATE_PACKAGE "rosy" "rosywrt/luci-theme-rosy" "master"  # master 分支不存在
+# UPDATE_PACKAGE "neobird" "thinktip/luci-theme-neobird" "master"  # master 分支不存在
+UPDATE_PACKAGE "opentopd" "sirpdboy/luci-theme-opentopd" "main"
+# UPDATE_PACKAGE "infinityfreedom" "xiaoqingfengATGH/luci-theme-infinityfreedom" "master"  # master 分支不存在
 UPDATE_PACKAGE "argon" "jerrykuku/luci-theme-argon" "master"
 
 # ============================================================
 # 系统工具
 # ============================================================
-UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "master"
-UPDATE_PACKAGE "chatgpt-web" "sirpdboy/luci-app-chatgpt-web" "master"
+UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "main"
+# UPDATE_PACKAGE "chatgpt-web" "sirpdboy/luci-app-chatgpt-web" "master"  # master 分支不存在
 UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
-UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "master"
-UPDATE_PACKAGE "cupsd" "sirpdboy/luci-app-cupsd" "master"
-UPDATE_PACKAGE "eqosplus" "sirpdboy/luci-app-eqosplus" "master"
+# UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "master"  # master 分支不存在
+# UPDATE_PACKAGE "cupsd" "sirpdboy/luci-app-cupsd" "master"  # master 分支不存在
+# UPDATE_PACKAGE "eqosplus" "sirpdboy/luci-app-eqosplus" "master"  # master 分支不存在
 UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
-UPDATE_PACKAGE "poweroff" "esirplayground/luci-app-poweroff" "master"
+# UPDATE_PACKAGE "poweroff" "esirplayground/luci-app-poweroff" "master"  # master 分支不存在
 UPDATE_PACKAGE "bandwidthd" "AlexZhuo/luci-app-bandwidthd" "master"
 
 # ============================================================
 # 应用
 # ============================================================
-UPDATE_PACKAGE "alist" "sbwml/luci-app-alist" "master"
-UPDATE_PACKAGE "onliner" "selfcan/luci-app-onliner" "master"
-UPDATE_PACKAGE "homebox" "selfcan/luci-app-homebox" "master"
+UPDATE_PACKAGE "alist" "sbwml/luci-app-alist" "main"
+UPDATE_PACKAGE "onliner" "selfcan/luci-app-onliner" "main"
+# UPDATE_PACKAGE "homebox" "selfcan/luci-app-homebox" "master"  # master 分支不存在
 UPDATE_PACKAGE "serverchan" "tty228/luci-app-serverchan" "master"
-UPDATE_PACKAGE "go-aliyundrive-webdav" "jerrykuku/luci-app-go-aliyundrive-webdav" "master"
+# UPDATE_PACKAGE "go-aliyundrive-webdav" "jerrykuku/luci-app-go-aliyundrive-webdav" "master"  # master 分支不存在
 UPDATE_PACKAGE "aliddns" "honwen/luci-app-aliddns" "master"
 UPDATE_PACKAGE "dogcom" "mchome/luci-app-dogcom" "master"
 UPDATE_PACKAGE "mentohust" "BoringCat/luci-app-mentohust" "master"
 UPDATE_PACKAGE "minieap" "BoringCat/luci-app-minieap" "master"
-UPDATE_PACKAGE "ikoolproxy" "iwrt/luci-app-ikoolproxy" "master"
-UPDATE_PACKAGE "macvlan" "ParticleG/luci-app-macvlan" "master"
-UPDATE_PACKAGE "ua2f" "lucikap/luci-app-ua2f" "master"
-UPDATE_PACKAGE "msd_lite" "hejiadong0608/luci-app-msd_lite" "master"
+# UPDATE_PACKAGE "ikoolproxy" "iwrt/luci-app-ikoolproxy" "master"  # master 分支不存在
+# UPDATE_PACKAGE "macvlan" "ParticleG/luci-app-macvlan" "master"  # master 分支不存在
+# UPDATE_PACKAGE "ua2f" "lucikap/luci-app-ua2f" "master"  # master 分支不存在
+# UPDATE_PACKAGE "msd_lite" "hejiadong0608/luci-app-msd_lite" "master"  # master 分支不存在
 UPDATE_PACKAGE "npc" "ghosthgytop/luci-app-npc" "master"
 UPDATE_PACKAGE "bearDropper" "NateLol/luci-app-bearDropper" "master"
-UPDATE_PACKAGE "athena-led" "NONGFAH/luci-app-athena-led" "master"
-UPDATE_PACKAGE "leigod-acc" "miaoermua/luci-app-leigod-acc" "master"
+# UPDATE_PACKAGE "athena-led" "NONGFAH/luci-app-athena-led" "master"  # master 分支不存在
+# UPDATE_PACKAGE "leigod-acc" "miaoermua/luci-app-leigod-acc" "master"  # master 分支不存在
 UPDATE_PACKAGE "istore" "linkease/istore" "main"
-UPDATE_PACKAGE "dnsfilter" "kiddin9/luci-app-dnsfilter" "master"
-UPDATE_PACKAGE "gecoosac" "lwb1978/openwrt-gecoosac" "master"
+# UPDATE_PACKAGE "dnsfilter" "kiddin9/luci-app-dnsfilter" "master"  # master 分支不存在
+# UPDATE_PACKAGE "gecoosac" "lwb1978/openwrt-gecoosac" "master"  # 仓库可能已删除
 
 # ============================================================
 # daed/dae
 # ============================================================
 UPDATE_PACKAGE "daed" "QiuSimons/luci-app-daed" "master"
-UPDATE_PACKAGE "dae" "QiuSimons/luci-app-dae" "master"
-UPDATE_PACKAGE "vmlinux-btf" "QiuSimons/vmlinux-btf" "main"
+# UPDATE_PACKAGE "dae" "QiuSimons/luci-app-dae" "master"  # master 分支不存在
+# UPDATE_PACKAGE "vmlinux-btf" "QiuSimons/vmlinux-btf" "main"  # main 分支不存在
 
 # ============================================================
 # 其他
 # ============================================================
 UPDATE_PACKAGE "vssr" "MilesPoupart/luci-app-vssr" "master"
-UPDATE_PACKAGE "clash" "frainzy1477/luci-app-clash" "master"
+# UPDATE_PACKAGE "clash" "frainzy1477/luci-app-clash" "master"  # master 分支不存在
 UPDATE_PACKAGE "easytier" "EasyTier/luci-app-easytier" "main"
 
-# 注意：不自动更新 sing-box，避免 Go 版本冲突
+# ============================================================
+# 注意事项：
+# 1. 不自动更新 sing-box，避免 Go 版本冲突
+# 2. 部分仓库因作者删除/改名已注释，clone 失败不中断编译
+# 3. 如发现某个包缺失，可检查对应仓库是否仍在维护
+# ============================================================

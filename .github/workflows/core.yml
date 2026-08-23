@@ -45,6 +45,12 @@ on:
       x64_lxc:
         type: boolean
         default: false
+      x64_nikki:
+        type: boolean
+        default: false
+      x64_homeproxy:
+        type: boolean
+        default: false
       x64_filesystem:
         type: string
         default: 'ext4'
@@ -169,6 +175,12 @@ jobs:
             if [ "${{ inputs.x64_lxc }}" == "true" ]; then
               cat $GITHUB_WORKSPACE/fragments/x64-lxc.txt >> .config
             fi
+            if [ "${{ inputs.x64_nikki }}" == "true" ]; then
+              cat $GITHUB_WORKSPACE/fragments/x64-nikki.txt >> .config
+            fi
+            if [ "${{ inputs.x64_homeproxy }}" == "true" ]; then
+              cat $GITHUB_WORKSPACE/fragments/x64-homeproxy.txt >> .config
+            fi
             # 文件系统：先清除默认值，再根据参数设置
             sed -i '/CONFIG_TARGET_ROOTFS_EXT4FS=/d' .config
             sed -i '/CONFIG_TARGET_ROOTFS_SQUASHFS=/d' .config
@@ -232,7 +244,11 @@ jobs:
       - name: Compile firmware
         run: |
           cd "$SOURCE_DIR"
-          make -j$(nproc) || make -j1 V=s
+          make -j$(nproc) || {
+            echo "=== 编译失败，用 V=s 重跑以输出详细错误 ==="
+            make -j1 V=s 2>&1 | tail -200
+            exit 1
+          }
 
       - name: Organize firmware files
         run: |

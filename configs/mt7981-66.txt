@@ -1,0 +1,31 @@
+# ============================================================
+# WR30U (MT7981) 平台基础配置 — 内核 6.6
+# 源码：padavanonly/immortalwrt-mt798x-6.6 openwrt-24.10-6.6
+# 验证状态：✅ 已验证可编译（ubootmod 变体）
+# ============================================================
+# 注意：本配置使用占位符，由 workflow 动态替换：
+#   TARGET_SUBTARGET  → filogic (6.6) / mt7981 (5.4)
+#   TARGET_DEVICETYPE → wr30u-ubootmod / wr30u-stock / wr30u-112m
+# ============================================================
+
+# --- 目标平台（占位符，workflow 动态替换） ---
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_TARGET_SUBTARGET=y
+CONFIG_TARGET_DEVICE_mediatek_TARGET_SUBTARGET_DEVICE_xiaomi_mi-router-TARGET_DEVICETYPE=y
+
+# --- 主线 WiFi 驱动 ---
+CONFIG_PACKAGE_kmod-mt7921e=y
+CONFIG_PACKAGE_kmod-mt7921-firmware=y
+
+# --- 基础系统 ---
+CONFIG_PACKAGE_luci=y
+CONFIG_LUCI_LANG_zh_Hans=y
+
+# ============================================================
+# 注意事项：
+# 1. padavanonly/immortalwrt-mt798x-6.6 分支名是 openwrt-24.10-6.6，不是 main
+# 2. 6.6 内核子目标叫 filogic，不是 mt7981
+# 3. 设备名：wr30u-ubootmod（已刷U-Boot mod）/ wr30u-stock（原厂）
+# 4. ubootmod 变体仅输出 sysupgrade.bin，stock 变体输出 factory.bin + sysupgrade.bin
+# 5. passwall 依赖 kenzok8/small，其中 luci-app-fchomo 有递归依赖，必须删除
+# ============================================================

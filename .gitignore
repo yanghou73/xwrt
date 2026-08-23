@@ -1,0 +1,23 @@
+# TRAE 内部文件
+.trae-html-share-packages/
+
+# 开发计划文档（内部使用，不推送）
+xwrt-dev-plan/
+
+# 临时文件
+*.zip
+*.tmp
+*.bak
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

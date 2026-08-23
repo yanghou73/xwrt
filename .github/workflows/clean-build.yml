@@ -1,0 +1,36 @@
+name: Clean Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      releases_keep:
+        description: '保留最新 Release 数量'
+        default: '5'
+      workflows_keep_day:
+        description: '保留 Workflow 天数'
+        default: '7'
+      delete_releases:
+        description: '删除 Releases'
+        type: boolean
+        default: true
+      delete_workflows:
+        description: '删除 Workflow 记录'
+        type: boolean
+        default: true
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - uses: actions/checkout@main
+      - uses: ophub/delete-releases-workflows@main
+        with:
+          delete_releases: ${{ inputs.delete_releases }}
+          releases_keep_latest: ${{ inputs.releases_keep }}
+          delete_tags: true
+          delete_workflows: ${{ inputs.delete_workflows }}
+          workflows_keep_day: ${{ inputs.workflows_keep_day }}
+          gh_token: ${{ github.token }}

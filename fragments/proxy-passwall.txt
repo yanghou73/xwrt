@@ -1,0 +1,12 @@
+# ============================================================
+# 代理片段 — PassWall + PassWall2
+# 验证状态：✅ WR30U 已验证
+# ============================================================
+
+CONFIG_PACKAGE_luci-app-passwall=y
+CONFIG_PACKAGE_luci-app-passwall2=y
+
+# 注意：
+# 1. passwall 依赖 kenzok8/small 仓库的大量依赖包
+# 2. kenzok8/small 中的 luci-app-fchomo 有递归依赖问题，必须删除
+# 3. 与 openclash 同时安装可能端口冲突，建议择一使用

@@ -1,0 +1,322 @@
+name: Core Build
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        required: true
+      repo:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+      config:
+        type: string
+        required: true
+      target:
+        type: string
+        required: true
+      subtarget:
+        type: string
+        required: true
+      devicetype:
+        type: string
+        required: true
+      pre_script:
+        type: string
+        required: true
+      common_script:
+        type: string
+        required: true
+      proxy:
+        type: string
+        required: true
+      devtools:
+        type: boolean
+        required: true
+      x64_variant:
+        type: string
+        default: 'standard'
+      x64_docker:
+        type: boolean
+        default: false
+      x64_lxc:
+        type: boolean
+        default: false
+      x64_filesystem:
+        type: string
+        default: 'ext4'
+      wrt_ip:
+        type: string
+        default: '192.168.1.1'
+      theme:
+        type: string
+        default: 'argon'
+      firmware_pattern:
+        type: string
+        required: true
+      cache:
+        type: boolean
+        default: true
+      test_only:
+        type: boolean
+        default: false
+
+env:
+  SOURCE_DIR: source
+  FIRMWARE_DIR: firmware
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Initialization environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf swig
+          sudo -E apt-get -qq autoremove --purge
+          sudo -E apt-get -qq clean
+          sudo timedatectl set-timezone "$TZ"
+          df -h
+
+      - name: Clone source code
+        run: |
+          git clone --depth=1 --single-branch --branch ${{ inputs.branch }} "${{ inputs.repo }}" "$SOURCE_DIR"
+          cd "$SOURCE_DIR"
+          echo "SOURCE_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "源码仓库: ${{ inputs.repo }}"
+          echo "分支: ${{ inputs.branch }}"
+          echo "Commit: $(git rev-parse HEAD)"
+
+      - name: Cache toolchain
+        if: ${{ inputs.cache == true }}
+        uses: actions/cache@main
+        with:
+          key: ${{ inputs.target }}-${{ inputs.subtarget }}-${{ inputs.config }}-${{ env.SOURCE_HASH }}
+          restore-keys: |
+            ${{ inputs.target }}-${{ inputs.subtarget }}-${{ inputs.config }}-
+          path: |
+            ${{ env.SOURCE_DIR }}/.ccache
+            ${{ env.SOURCE_DIR }}/staging_dir/host*
+            ${{ env.SOURCE_DIR }}/staging_dir/tool*
+            ${{ env.SOURCE_DIR }}/build_dir/host*
+            ${{ env.SOURCE_DIR }}/dl
+
+      - name: Update feeds
+        run: |
+          cd "$SOURCE_DIR"
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Platform pre-processing
+        run: |
+          cd "$SOURCE_DIR"
+          chmod +x $GITHUB_WORKSPACE/scripts/${{ inputs.pre_script }}
+          bash $GITHUB_WORKSPACE/scripts/${{ inputs.pre_script }}
+
+      - name: Install custom packages
+        run: |
+          cd "$SOURCE_DIR/package/"
+          chmod +x $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
+          bash $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
+
+      - name: Post-processing
+        run: |
+          cd "$SOURCE_DIR/package/"
+          chmod +x $GITHUB_WORKSPACE/scripts/post.sh
+          bash $GITHUB_WORKSPACE/scripts/post.sh
+
+      - name: Assemble configuration
+        run: |
+          cd "$SOURCE_DIR"
+          
+          # 平台基础配置
+          cat $GITHUB_WORKSPACE/configs/${{ inputs.config }} > .config
+          
+          # 替换子目标和设备名占位符
+          sed -i "s/TARGET_SUBTARGET/${{ inputs.subtarget }}/g" .config
+          sed -i "s/TARGET_DEVICETYPE/${{ inputs.devicetype }}/g" .config
+          
+          # 通用片段
+          cat $GITHUB_WORKSPACE/fragments/general.txt >> .config
+          
+          # 代理插件
+          if [ "${{ inputs.proxy }}" != "none" ]; then
+            cat $GITHUB_WORKSPACE/fragments/proxy-${{ inputs.proxy }}.txt >> .config
+          fi
+          
+          # 开发工具
+          if [ "${{ inputs.devtools }}" == "true" ]; then
+            cat $GITHUB_WORKSPACE/fragments/devtools.txt >> .config
+          fi
+          
+          # x64 专属
+          if [ "${{ inputs.platform }}" == "x64" ]; then
+            if [ "${{ inputs.x64_variant }}" == "full" ]; then
+              cat $GITHUB_WORKSPACE/fragments/x64-full.txt >> .config
+            fi
+            if [ "${{ inputs.x64_docker }}" == "true" ]; then
+              cat $GITHUB_WORKSPACE/fragments/x64-docker.txt >> .config
+            fi
+            if [ "${{ inputs.x64_lxc }}" == "true" ]; then
+              cat $GITHUB_WORKSPACE/fragments/x64-lxc.txt >> .config
+            fi
+            # 文件系统：先清除默认值，再根据参数设置
+            sed -i '/CONFIG_TARGET_ROOTFS_EXT4FS=/d' .config
+            sed -i '/CONFIG_TARGET_ROOTFS_SQUASHFS=/d' .config
+            sed -i '/CONFIG_TARGET_ROOTFS_ISO=/d' .config
+            case "${{ inputs.x64_filesystem }}" in
+              ext4)
+                echo "CONFIG_TARGET_ROOTFS_EXT4FS=y" >> .config
+                ;;
+              squashfs)
+                echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
+                ;;
+              both)
+                echo "CONFIG_TARGET_ROOTFS_EXT4FS=y" >> .config
+                echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
+                ;;
+            esac
+            echo "x64 文件系统: ${{ inputs.x64_filesystem }}"
+          fi
+          
+          echo "配置拼接完成"
+          echo "=== 配置片段统计 ==="
+          echo "平台: ${{ inputs.platform }}"
+          echo "子目标: ${{ inputs.subtarget }}"
+          echo "设备: ${{ inputs.devicetype }}"
+          echo "代理: ${{ inputs.proxy }}"
+          echo "开发工具: ${{ inputs.devtools }}"
+
+      - name: Apply settings (IP, theme, etc.)
+        run: |
+          cd "$SOURCE_DIR"
+          WRT_IP="${{ inputs.wrt_ip }}" WRT_THEME="${{ inputs.theme }}" bash $GITHUB_WORKSPACE/scripts/settings.sh
+
+      - name: Generate defconfig
+        run: |
+          cd "$SOURCE_DIR"
+          make defconfig
+          cp .config build.config
+          echo "=== 设备目标检查 ==="
+          grep "CONFIG_TARGET_DEVICE" build.config || echo "警告: 未找到设备目标配置！"
+          echo "=== 关键包检查 ==="
+          grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd)=" build.config || true
+
+      - name: [TEST] Upload config
+        if: ${{ inputs.test_only == true }}
+        uses: actions/upload-artifact@main
+        with:
+          name: build_config_test
+          path: ${{ env.SOURCE_DIR }}/build.config
+
+      - name: [TEST] Exit
+        if: ${{ inputs.test_only == true }}
+        run: |
+          echo "测试模式：配置生成完成，退出编译"
+          exit 0
+
+      - name: Download packages
+        run: |
+          cd "$SOURCE_DIR"
+          make download -j8
+
+      - name: Compile firmware
+        run: |
+          cd "$SOURCE_DIR"
+          make -j$(nproc) || make -j1 V=s
+
+      - name: Organize firmware files
+        run: |
+          cd "$SOURCE_DIR"
+          mkdir -p "$FIRMWARE_DIR"
+          
+          # 收集主固件文件
+          find bin/targets/ -type f -name "${{ inputs.firmware_pattern }}" -exec cp -f {} "$FIRMWARE_DIR/" \;
+          
+          # x64 额外收集虚拟机镜像
+          if [ "${{ inputs.platform }}" == "x64" ]; then
+            find bin/targets/ -type f \( -name "*.vdi" -o -name "*.vmdk" -o -name "*.vhdx" -o -name "*.qcow2" \) -exec cp -f {} "$FIRMWARE_DIR/" \;
+          fi
+          
+          # 复制 build.config
+          cp build.config "$FIRMWARE_DIR/build.config"
+          
+          # 生成 sha256 校验
+          cd "$FIRMWARE_DIR"
+          sha256sum * > sha256sums.txt
+          
+          echo "=== 固件文件 ==="
+          ls -lh .
+
+      - name: Upload firmware to Artifacts
+        uses: actions/upload-artifact@main
+        with:
+          name: firmware_${{ inputs.platform }}
+          path: ${{ env.SOURCE_DIR }}/${{ env.FIRMWARE_DIR }}/
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "release_tag=${{ inputs.platform }}_$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+          echo "build_date=$(date +"%Y-%m-%d %H:%M %Z")" >> $GITHUB_OUTPUT
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          files: |
+            ${{ env.SOURCE_DIR }}/${{ env.FIRMWARE_DIR }}/*
+          body: |
+            ## 固件信息
+            
+            | 项目 | 内容 |
+            |------|------|
+            | **平台** | ${{ inputs.platform }} |
+            | **子目标** | ${{ inputs.subtarget }} |
+            | **设备** | ${{ inputs.devicetype }} |
+            | **代理插件** | ${{ inputs.proxy }} |
+            | **开发工具** | ${{ inputs.devtools }} |
+            | **LAN IP** | ${{ inputs.wrt_ip }} |
+            | **主题** | ${{ inputs.theme }} |
+            
+            ${{ inputs.platform == 'mt7981' && format('| **内核版本** | {0} |', inputs.kernel) || '' }}
+            ${{ inputs.platform == 'x64' && format('| **固件规模** | {0} |\n| **Docker** | {1} |\n| **LXC** | {2} |\n| **文件系统** | {3} |', inputs.x64_variant, inputs.x64_docker, inputs.x64_lxc, inputs.x64_filesystem) || '' }}
+            
+            ## 登录信息
+            
+            - 管理地址：http://${{ inputs.wrt_ip }}
+            - SSH：${{ inputs.wrt_ip }}:22（dropbear）
+            - 初始密码：无（首次登录请设置密码）
+            
+            ## 包含插件
+            
+            - **代理**：${{ inputs.proxy }}
+            - **DNS**：smartdns
+            - **开发工具**：bash / strace / tcpdump / ttyd / openssh-client / opkg
+            - **网络工具**：iperf3 / curl / socat / rsync
+            - **系统工具**：htop / coremark / nano / tree
+            - **主题**：${{ inputs.theme }}
+            
+            ## 校验说明
+            
+            下载固件后请校验 sha256：
+            ```bash
+            sha256sum -c sha256sums.txt
+            ```
+            
+            ## 编译信息
+            
+            - **源码仓库**：${{ inputs.repo }}
+            - **分支**：${{ inputs.branch }}
+            - **编译时间**：${{ steps.tag.outputs.build_date }}
+            
+            > 本固件由 xwrt 自动编译框架生成

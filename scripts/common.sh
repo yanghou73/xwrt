@@ -1,0 +1,90 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# ============================================================
+# 通用包拉取脚本 — AIROHA + MT7981 通用
+# 执行位置：package/ 目录下（UPDATE_PACKAGE 用 ../feeds/ 佐证）
+# 验证状态：✅ WR30U 已验证
+# ============================================================
+
+UPDATE_PACKAGE() {
+  local PKG_NAME=$1
+  local PKG_REPO=$2
+  local PKG_BRANCH=$3
+  local PKG_SPECIAL=$4
+  local PKG_LIST=("$PKG_NAME" $5)  # 第5个参数为自定义名称列表
+  local REPO_NAME=${PKG_REPO#*/}
+
+  echo " "
+
+  # 删除本地可能存在的不同名称的软件包
+  for NAME in "${PKG_LIST[@]}"; do
+    echo "Search directory: $NAME"
+    local FOUND_DIRS=$(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
+
+    if [ -n "$FOUND_DIRS" ]; then
+      while read -r DIR; do
+        rm -rf "$DIR"
+        echo "Delete directory: $DIR"
+      done <<< "$FOUND_DIRS"
+    else
+      echo "Not found directory: $NAME"
+    fi
+  done
+
+  # 克隆 GitHub 仓库
+  git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git"
+
+  # 处理克隆的仓库
+  if [[ "$PKG_SPECIAL" == "pkg" ]]; then
+    find ./$REPO_NAME/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune -exec cp -rf {} ./ \;
+    rm -rf ./$REPO_NAME/
+  elif [[ "$PKG_SPECIAL" == "name" ]]; then
+    mv -f $REPO_NAME $PKG_NAME
+  fi
+}
+
+# ============================================================
+# 主题（仅保留 argon）
+# ============================================================
+UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-25.12"
+
+# ============================================================
+# 代理插件
+# ============================================================
+UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
+UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
+UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
+
+# passwall 依赖包（大量依赖在 kenzok8/small 中）
+git clone --depth=1 https://github.com/kenzok8/small.git
+# ⚠️  重要：删除有递归依赖问题的包
+# luci-app-fchomo 会导致 make defconfig 失败（recursive dependency detected）
+# 进而导致设备目标丢失，不生成固件
+rm -rfv small/luci-app-fchomo
+
+# ============================================================
+# DNS
+# ============================================================
+# smartdns 使用 feeds 自带版本（与源码树完全兼容）
+# AIROHA 平台注意：pymumu 最新版与 bingoguo93/immortalwrt 6.18 编译不兼容
+# 如需更新 smartdns，请在各平台 pre 脚本中单独处理
+# UPDATE_PACKAGE "smartdns" "pymumu/openwrt-smartdns" "master" ""
+# UPDATE_PACKAGE "luci-app-smartdns" "pymumu/luci-app-smartdns" "master" ""
+
+# ============================================================
+# 网络测速
+# ============================================================
+UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
+
+# ============================================================
+# 其他工具
+# ============================================================
+UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
+
+# ============================================================
+# 踩坑记录：
+# 1. kenzok8/small 中的 luci-app-fchomo 有递归依赖，必须删除
+# 2. AIROHA 平台 smartdns 用 feeds 版本，不用 pymumu 最新版
+# 3. 脚本在 package/ 目录下执行，路径用 ../feeds/
+# 4. 不自动更新 sing-box 版本，避免 Go 版本冲突
+# ============================================================

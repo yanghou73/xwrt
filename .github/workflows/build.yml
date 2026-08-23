@@ -1,0 +1,171 @@
+name: Build Firmware
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: '目标平台'
+        type: choice
+        default: 'mt7981'
+        options:
+          - airoha
+          - mt7981
+          - x64
+      kernel:
+        description: '内核版本（仅 mt7981 有效）'
+        type: choice
+        default: '6.6'
+        options:
+          - '6.6'
+          - '5.4'
+      device_variant:
+        description: '设备变体（仅 mt7981 有效：ubootmod=仅sysupgrade / stock=factory+sysupgrade）'
+        type: choice
+        default: 'ubootmod'
+        options:
+          - ubootmod
+          - stock
+      proxy:
+        description: '代理插件'
+        type: choice
+        default: 'both'
+        options:
+          - openclash
+          - passwall
+          - both
+          - none
+      devtools:
+        description: '包含开发工具（bash/ssh/strace/tcpdump/ttyd）'
+        type: boolean
+        default: true
+      # x64 专属选项
+      x64_variant:
+        description: 'x64 固件规模（仅 x64 有效）'
+        type: choice
+        default: 'standard'
+        options:
+          - minimal
+          - standard
+          - full
+      x64_docker:
+        description: 'x64 Docker 支持（仅 x64 有效）'
+        type: boolean
+        default: false
+      x64_lxc:
+        description: 'x64 LXC 支持（仅 x64 有效）'
+        type: boolean
+        default: false
+      x64_filesystem:
+        description: 'x64 文件系统（仅 x64 有效）'
+        type: choice
+        default: 'ext4'
+        options:
+          - ext4
+          - squashfs
+          - both
+      # 通用选项
+      wrt_ip:
+        description: '路由器 LAN IP 地址'
+        type: string
+        default: '192.168.1.1'
+      theme:
+        description: '主题'
+        type: choice
+        default: 'argon'
+        options:
+          - argon
+      cache:
+        description: '使用 toolchain 缓存（首次编译或报错时关闭）'
+        type: boolean
+        default: true
+      test_only:
+        description: '仅测试模式（输出 .config 不编译固件）'
+        type: boolean
+        default: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.params.outputs.repo }}
+      branch: ${{ steps.params.outputs.branch }}
+      config: ${{ steps.params.outputs.config }}
+      target: ${{ steps.params.outputs.target }}
+      subtarget: ${{ steps.params.outputs.subtarget }}
+      devicetype: ${{ steps.params.outputs.devicetype }}
+      pre_script: ${{ steps.params.outputs.pre_script }}
+      common_script: ${{ steps.params.outputs.common_script }}
+      firmware_pattern: ${{ steps.params.outputs.firmware_pattern }}
+    steps:
+      - name: Resolve platform parameters
+        id: params
+        run: |
+          case "${{ inputs.platform }}" in
+            airoha)
+              echo "repo=https://github.com/bingoguo93/immortalwrt.git" >> $GITHUB_OUTPUT
+              echo "branch=6.18" >> $GITHUB_OUTPUT
+              echo "config=airoha.txt" >> $GITHUB_OUTPUT
+              echo "target=airoha" >> $GITHUB_OUTPUT
+              echo "subtarget=an7581" >> $GITHUB_OUTPUT
+              echo "devicetype=nokia_xg-040g-md" >> $GITHUB_OUTPUT
+              echo "pre_script=airoha-pre.sh" >> $GITHUB_OUTPUT
+              echo "common_script=common.sh" >> $GITHUB_OUTPUT
+              echo 'firmware_pattern=*xg-040g-md*squashfs*.bin' >> $GITHUB_OUTPUT
+              ;;
+            mt7981)
+              if [ "${{ inputs.kernel }}" = "5.4" ]; then
+                echo "repo=https://github.com/Yuzhii0718/immortalwrt-mt798x-hanwckf.git" >> $GITHUB_OUTPUT
+                echo "branch=openwrt-21.02" >> $GITHUB_OUTPUT
+                echo "config=mt7981-54.txt" >> $GITHUB_OUTPUT
+                echo "subtarget=mt7981" >> $GITHUB_OUTPUT
+                echo "devicetype=wr30u-112m" >> $GITHUB_OUTPUT
+              else
+                echo "repo=https://github.com/padavanonly/immortalwrt-mt798x-6.6.git" >> $GITHUB_OUTPUT
+                echo "branch=openwrt-24.10-6.6" >> $GITHUB_OUTPUT
+                echo "config=mt7981-66.txt" >> $GITHUB_OUTPUT
+                echo "subtarget=filogic" >> $GITHUB_OUTPUT
+                echo "devicetype=wr30u-${{ inputs.device_variant }}" >> $GITHUB_OUTPUT
+              fi
+              echo "target=mediatek" >> $GITHUB_OUTPUT
+              echo "pre_script=mt7981-pre.sh" >> $GITHUB_OUTPUT
+              echo "common_script=common.sh" >> $GITHUB_OUTPUT
+              echo 'firmware_pattern=*wr30u*squashfs*.bin' >> $GITHUB_OUTPUT
+              ;;
+            x64)
+              echo "repo=https://github.com/coolsnowwolf/lede.git" >> $GITHUB_OUTPUT
+              echo "branch=master" >> $GITHUB_OUTPUT
+              echo "config=x64.txt" >> $GITHUB_OUTPUT
+              echo "target=x86" >> $GITHUB_OUTPUT
+              echo "subtarget=64" >> $GITHUB_OUTPUT
+              echo "devicetype=generic" >> $GITHUB_OUTPUT
+              echo "pre_script=x64-pre.sh" >> $GITHUB_OUTPUT
+              echo "common_script=common-x64.sh" >> $GITHUB_OUTPUT
+              echo 'firmware_pattern=*combined*.img.gz' >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+  build:
+    needs: resolve
+    uses: ./.github/workflows/core.yml
+    with:
+      platform: ${{ inputs.platform }}
+      repo: ${{ needs.resolve.outputs.repo }}
+      branch: ${{ needs.resolve.outputs.branch }}
+      config: ${{ needs.resolve.outputs.config }}
+      target: ${{ needs.resolve.outputs.target }}
+      subtarget: ${{ needs.resolve.outputs.subtarget }}
+      devicetype: ${{ needs.resolve.outputs.devicetype }}
+      pre_script: ${{ needs.resolve.outputs.pre_script }}
+      common_script: ${{ needs.resolve.outputs.common_script }}
+      proxy: ${{ inputs.proxy }}
+      devtools: ${{ inputs.devtools }}
+      x64_variant: ${{ inputs.x64_variant }}
+      x64_docker: ${{ inputs.x64_docker }}
+      x64_lxc: ${{ inputs.x64_lxc }}
+      x64_filesystem: ${{ inputs.x64_filesystem }}
+      wrt_ip: ${{ inputs.wrt_ip }}
+      theme: ${{ inputs.theme }}
+      firmware_pattern: ${{ needs.resolve.outputs.firmware_pattern }}
+      cache: ${{ inputs.cache }}
+      test_only: ${{ inputs.test_only }}
+    secrets: inherit

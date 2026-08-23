@@ -1,0 +1,131 @@
+# ============================================================
+# Intel x64 平台基础配置
+# 源码：coolsnowwolf/lede master
+# 内核：6.12（稳定）/ 可选 6.18（测试版）
+# 验证状态：⏳ 待验证
+# ============================================================
+
+# --- 目标平台 ---
+CONFIG_TARGET_x86=y
+CONFIG_TARGET_x86_64=y
+CONFIG_TARGET_x86_64_DEVICE_generic=y
+
+# --- 必须设置串口（否则编译报错） ---
+CONFIG_TARGET_SERIAL="ttyS0,115200"
+
+# --- 内核版本 ---
+# 默认 6.12（稳定），取消下面注释启用 6.18（测试版）
+# CONFIG_TESTING_KERNEL=y
+
+# --- GRUB 引导 ---
+CONFIG_GRUB_IMAGES=y
+CONFIG_GRUB_TIMEOUT="3"
+# CONFIG_GRUB_EFI_IMAGES=y
+
+# --- 虚拟机镜像格式 ---
+CONFIG_VDI_IMAGES=y
+CONFIG_VMDK_IMAGES=y
+CONFIG_VHDX_IMAGES=y
+CONFIG_QCOW2_IMAGES=y
+
+# --- 分区大小 ---
+CONFIG_TARGET_KERNEL_PARTSIZE=64
+CONFIG_TARGET_ROOTFS_PARTSIZE=800
+
+# --- 文件系统（由 workflow 动态控制，此处仅作默认） ---
+CONFIG_TARGET_ROOTFS_EXT4FS=y
+# CONFIG_TARGET_ROOTFS_SQUASHFS=y
+# CONFIG_TARGET_ROOTFS_ISO=y
+
+# --- 内核通用选项 ---
+CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE=y
+CONFIG_KERNEL_FHANDLE=y
+CONFIG_KERNEL_MAGIC_SYSRQ=y
+CONFIG_KERNEL_PRINTK=y
+CONFIG_KERNEL_SWAP=y
+CONFIG_KERNEL_MIPS_FPU_EMULATOR=y
+
+# --- 内核模块 ---
+# 网络
+CONFIG_PACKAGE_kmod-tun=y
+CONFIG_PACKAGE_kmod-nf-tproxy=y
+CONFIG_PACKAGE_kmod-ipt-tproxy=y
+CONFIG_PACKAGE_kmod-ipt-ipset=y
+CONFIG_PACKAGE_kmod-wireguard=y
+
+# 文件系统
+CONFIG_PACKAGE_kmod-fs-btrfs=y
+CONFIG_PACKAGE_kmod-fs-exfat=y
+CONFIG_PACKAGE_kmod-fs-ntfs3=y
+CONFIG_PACKAGE_kmod-fs-xfs=y
+
+# USB 支持
+CONFIG_PACKAGE_kmod-usb-core=y
+CONFIG_PACKAGE_kmod-usb-ohci=y
+CONFIG_PACKAGE_kmod-usb-uhci=y
+CONFIG_PACKAGE_kmod-usb2=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+CONFIG_PACKAGE_kmod-usb-storage-extras=y
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
+CONFIG_PACKAGE_kmod-usb-net-rtl8150=y
+
+# 块设备 / LVM
+CONFIG_PACKAGE_kmod-dm=y
+CONFIG_PACKAGE_kmod-md-mod=y
+CONFIG_PACKAGE_kmod-md-linear=y
+CONFIG_PACKAGE_kmod-md-raid0=y
+CONFIG_PACKAGE_kmod-md-raid1=y
+CONFIG_PACKAGE_kmod-md-raid10=y
+
+# 硬件监控
+CONFIG_PACKAGE_kmod-hwmon-core=y
+CONFIG_PACKAGE_kmod-hwmon-lm90=y
+CONFIG_PACKAGE_kmod-hwmon-w83627ehf=y
+CONFIG_PACKAGE_kmod-hwmon-w83792d=y
+CONFIG_PACKAGE_kmod-hwmon-sysfs=y
+
+# IPMI / 服务器管理
+CONFIG_PACKAGE_kmod-ipmi-devintf=y
+CONFIG_PACKAGE_kmod-ipmi-msghandler=y
+CONFIG_PACKAGE_kmod-ipmi-si=y
+CONFIG_PACKAGE_kmod-ipmi-watchdog=y
+
+# Intel 平台专用
+CONFIG_PACKAGE_kmod-intel-ixgbe=y
+CONFIG_PACKAGE_kmod-intel-ixgbevf=y
+CONFIG_PACKAGE_kmod-intel-i40e=y
+CONFIG_PACKAGE_kmod-intel-iavf=y
+CONFIG_PACKAGE_kmod-e1000e=y
+CONFIG_PACKAGE_kmod-igb=y
+CONFIG_PACKAGE_kmod-igbvf=y
+CONFIG_PACKAGE_kmod-igc=y
+
+# Realtek 网卡
+CONFIG_PACKAGE_kmod-r8125=y
+CONFIG_PACKAGE_kmod-r8168=y
+CONFIG_PACKAGE_kmod-r8169=y
+
+# 虚拟化（半虚拟化驱动）
+CONFIG_PACKAGE_kmod-virtio-net=y
+CONFIG_PACKAGE_kmod-virtio-blk=y
+CONFIG_PACKAGE_kmod-virtio-balloon=y
+CONFIG_PACKAGE_kmod-virtio-rng=y
+CONFIG_PACKAGE_kmod-vmxnet3=y
+
+# --- 基础系统包 ---
+CONFIG_PACKAGE_luci=y
+CONFIG_LUCI_LANG_zh_Hans=y
+
+# --- 包管理 ---
+CONFIG_PACKAGE_opkg=y
+
+# ============================================================
+# 注意事项：
+# 1. coolsnowwolf/lede 默认内核 6.12（稳定），可选 6.18 测试版
+# 2. lede 默认已含丰富 x86 驱动，此处仅显式声明关键驱动以确保包含
+# 3. CONFIG_TARGET_SERIAL 必须设置，否则编译报错
+# 4. 文件系统类型由 workflow 根据 x64_filesystem 参数动态控制
+# 5. Docker/LXC 内核选项在 x64-docker.txt / x64-lxc.txt fragment 中
+# ============================================================

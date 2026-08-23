@@ -1,0 +1,33 @@
+name: Clean Cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: '输入 yes 确认清理所有缓存'
+        default: 'no'
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@main
+      - name: Clean all caches
+        run: |
+          if [ "${{ inputs.confirm }}" != "yes" ]; then
+            echo "未确认，跳过清理"
+            exit 0
+          fi
+          echo "开始清理缓存..."
+          COUNT=0
+          for KEY in $(gh cache list --json key -q '.[].key'); do
+            echo "删除缓存: $KEY"
+            gh cache delete "$KEY" || true
+            COUNT=$((COUNT + 1))
+          done
+          echo "清理完成！共删除 $COUNT 个缓存"
+        env:
+          GH_TOKEN: ${{ github.token }}

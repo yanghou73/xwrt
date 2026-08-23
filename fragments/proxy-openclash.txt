@@ -1,0 +1,10 @@
+# ============================================================
+# 代理片段 — 仅 OpenClash
+# 验证状态：✅ WR30U 已验证，AIROHA 已验证
+# ============================================================
+
+CONFIG_PACKAGE_luci-app-openclash=y
+CONFIG_PACKAGE_coreutils-nohup=y
+
+# 注意：openclash 内核文件（clash-linux-arm64.tar.gz）首次启动时自动下载
+# 如下载慢，可手动上传到 /etc/openclash/core/

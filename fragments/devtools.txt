@@ -1,0 +1,51 @@
+# ============================================================
+# 开发工具片段
+# 验证状态：✅ WR30U 已验证（修正包名后）
+# ============================================================
+
+# --- Shell ---
+CONFIG_PACKAGE_bash=y
+# CONFIG_PACKAGE_bash-completion=y   # feeds 中不存在，不装
+
+# --- SSH（只装 client + sftp，不装 server，避免与 dropbear 冲突） ---
+CONFIG_PACKAGE_openssh-client=y
+CONFIG_PACKAGE_openssh-sftp-server=y
+# CONFIG_PACKAGE_openssh-server=y    # 与 dropbear 端口 22 冲突，不装
+
+# --- 包管理 ---
+CONFIG_PACKAGE_opkg=y
+
+# --- 网络调试 ---
+CONFIG_PACKAGE_strace=y
+CONFIG_PACKAGE_tcpdump=y
+CONFIG_PACKAGE_mtr-nojson=y          # 不是 mtr，是 mtr-nojson
+CONFIG_PACKAGE_socat=y
+CONFIG_PACKAGE_iperf3=y
+CONFIG_PACKAGE_screen=y
+
+# --- 文件工具 ---
+CONFIG_PACKAGE_nano=y
+CONFIG_PACKAGE_less=y
+CONFIG_PACKAGE_tree=y
+CONFIG_PACKAGE_file=y
+CONFIG_PACKAGE_rsync=y
+CONFIG_PACKAGE_diffutils=y
+CONFIG_PACKAGE_patch=y
+CONFIG_PACKAGE_unzip=y
+CONFIG_PACKAGE_zip=y
+
+# --- 系统工具 ---
+CONFIG_PACKAGE_lsof=y
+CONFIG_PACKAGE_procps-ng=y
+CONFIG_PACKAGE_coreutils=y
+CONFIG_PACKAGE_findutils-find=y
+CONFIG_PACKAGE_findutils-xargs=y
+CONFIG_PACKAGE_xz-utils=y
+CONFIG_PACKAGE_wget-ssl=y
+
+# ============================================================
+# 踩坑记录：
+# 1. openssh-server 与 dropbear 端口冲突 → 只装 client + sftp-server
+# 2. bash-completion 不存在 → 只装 bash
+# 3. mtr 包名是 mtr-nojson → 用 mtr-nojson
+# ============================================================

@@ -1,0 +1,14 @@
+# ============================================================
+# 代理片段 — OpenClash + PassWall + PassWall2（全套）
+# 验证状态：✅ WR30U 已验证
+# ============================================================
+
+CONFIG_PACKAGE_luci-app-openclash=y
+CONFIG_PACKAGE_coreutils-nohup=y
+CONFIG_PACKAGE_luci-app-passwall=y
+CONFIG_PACKAGE_luci-app-passwall2=y
+
+# 注意：
+# 1. both 模式包含所有代理插件，固件体积较大
+# 2. openclash 和 passwall 同时运行可能端口冲突
+# 3. 建议实际使用时择一启用

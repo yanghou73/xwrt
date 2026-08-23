@@ -1,0 +1,24 @@
+# ============================================================
+# WR30U (MT7981) 平台基础配置 — 内核 5.4
+# 源码：Yuzhii0718/immortalwrt-mt798x-hanwckf openwrt-21.02
+# 验证状态：⏳ 待验证
+# ============================================================
+# 注意：本配置使用占位符，由 workflow 动态替换
+#   TARGET_SUBTARGET  → mt7981
+#   TARGET_DEVICETYPE → wr30u-112m
+# ============================================================
+
+# --- 目标平台（占位符，workflow 动态替换） ---
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_TARGET_SUBTARGET=y
+CONFIG_TARGET_DEVICE_mediatek_TARGET_SUBTARGET_DEVICE_xiaomi_mi-router-TARGET_DEVICETYPE=y
+
+# --- 闭源 WiFi 驱动（5.4 内核用 mtk 闭源驱动） ---
+# CONFIG_PACKAGE_kmod-mt7915e=y
+# CONFIG_PACKAGE_kmod-mt7916-firmware=y
+
+# --- 基础系统 ---
+CONFIG_PACKAGE_luci=y
+CONFIG_LUCI_LANG_zh_Hans=y
+
+# TODO: 5.4 内核专属配置待补充

@@ -1,0 +1,66 @@
+# ============================================================
+# x64 Docker 支持片段
+# 源码：coolsnowwolf/lede master
+# 验证状态：⏳ 待验证
+# ============================================================
+
+# --- Docker 核心内核选项 ---
+CONFIG_KERNEL_CGROUPS=y
+CONFIG_KERNEL_NAMESPACES=y
+CONFIG_KERNEL_OVERLAY_FS=y
+CONFIG_KERNEL_MEMCG=y
+CONFIG_KERNEL_CGROUP_DEVICE=y
+CONFIG_KERNEL_CGROUP_SCHED=y
+CONFIG_KERNEL_FAIR_GROUP_SCHED=y
+CONFIG_KERNEL_BLK_CGROUP=y
+CONFIG_KERNEL_CPUSETS=y
+CONFIG_KERNEL_DEVPTS_MULTIPLE_INSTANCES=y
+CONFIG_KERNEL_POSIX_MQUEUE=y
+CONFIG_KERNEL_KEYS=y
+CONFIG_KERNEL_SECCOMP=y
+CONFIG_KERNEL_SECCOMP_FILTER=y
+CONFIG_KERNEL_NET_CLS_CGROUP=y
+CONFIG_KERNEL_NETPRIO_CGROUP=y
+CONFIG_KERNEL_PERF_EVENTS=y
+CONFIG_KERNEL_DEBUG_INFO=y
+# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set
+
+# --- Docker 运行时 ---
+CONFIG_PACKAGE_dockerd=y
+CONFIG_PACKAGE_docker=y
+CONFIG_PACKAGE_containerd=y
+CONFIG_PACKAGE_runc=y
+CONFIG_PACKAGE_tini=y
+CONFIG_PACKAGE_libnetwork=y
+
+# --- Docker LuCI 界面（dockerman 是 lede 常用版本） ---
+CONFIG_PACKAGE_luci-app-dockerman=y
+CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn=y
+
+# --- 容器存储与工具 ---
+CONFIG_PACKAGE_btrfs-progs=y
+CONFIG_PACKAGE_kmod-fs-btrfs=y
+CONFIG_PACKAGE_kmod-dm=y
+CONFIG_PACKAGE_e2fsprogs=y
+CONFIG_PACKAGE_resize2fs=y
+CONFIG_PACKAGE_tune2fs=y
+CONFIG_PACKAGE_fdisk=y
+CONFIG_PACKAGE_gdisk=y
+CONFIG_PACKAGE_parted=y
+
+# --- 网络工具（Docker 网络需要） ---
+CONFIG_PACKAGE_ip-tiny=y
+CONFIG_PACKAGE_ip-full=y
+CONFIG_PACKAGE_iptables=y
+CONFIG_PACKAGE_ip6tables=y
+CONFIG_PACKAGE_ebtables=y
+CONFIG_PACKAGE_bridge=y
+CONFIG_PACKAGE_ipset=y
+
+# ============================================================
+# 注意事项：
+# 1. Docker 需要较大存储空间，建议 ROOTFS_PARTSIZE >= 800MB
+# 2. lede 中 Docker 管理界面通常是 luci-app-dockerman
+# 3. 内核选项较多，make defconfig 会自动补全依赖
+# 4. 与 LXC 共用部分内核选项（cgroups/namespaces）
+# ============================================================

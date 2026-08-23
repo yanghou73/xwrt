@@ -1,0 +1,47 @@
+# ============================================================
+# x64 LXC 容器支持片段
+# 源码：coolsnowwolf/lede master
+# 验证状态：⏳ 待验证
+# ============================================================
+
+# --- LXC 用户空间工具 ---
+CONFIG_PACKAGE_lxc-utils=y
+CONFIG_PACKAGE_lxc-common=y
+CONFIG_PACKAGE_lxc-hooks=y
+CONFIG_PACKAGE_lxc-templates=y
+CONFIG_PACKAGE_liblxc=y
+
+# --- LXC LuCI 界面 ---
+CONFIG_PACKAGE_luci-app-lxc=y
+CONFIG_PACKAGE_luci-i18n-lxc-zh-cn=y
+
+# --- LXC 依赖的内核选项（与 Docker 部分重叠） ---
+CONFIG_KERNEL_CGROUPS=y
+CONFIG_KERNEL_NAMESPACES=y
+CONFIG_KERNEL_CGROUP_DEVICE=y
+CONFIG_KERNEL_CGROUP_SCHED=y
+CONFIG_KERNEL_FAIR_GROUP_SCHED=y
+CONFIG_KERNEL_MEMCG=y
+CONFIG_KERNEL_CPUSETS=y
+CONFIG_KERNEL_DEVPTS_MULTIPLE_INSTANCES=y
+CONFIG_KERNEL_POSIX_MQUEUE=y
+CONFIG_KERNEL_KEYS=y
+CONFIG_KERNEL_SECCOMP=y
+CONFIG_KERNEL_OVERLAY_FS=y
+
+# --- 模板所需工具 ---
+CONFIG_PACKAGE_debootstrap=y
+CONFIG_PACKAGE_gnupg=y
+CONFIG_PACKAGE_wget-ssl=y
+CONFIG_PACKAGE_rsync=y
+
+# --- LVM 支持（可选，用于容器存储） ---
+CONFIG_PACKAGE_lvm2=y
+CONFIG_PACKAGE_kmod-dm=y
+
+# ============================================================
+# 注意事项：
+# 1. LXC 比 Docker 更轻量，但镜像管理不如 Docker 方便
+# 2. 与 Docker 共用 cgroups/namespaces 内核选项
+# 3. 如同时启用 Docker 和 LXC，内核选项重复不影响
+# ============================================================

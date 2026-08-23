@@ -211,14 +211,14 @@ jobs:
           echo "=== 关键包检查 ==="
           grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd)=" build.config || true
 
-      - name: [TEST] Upload config
+      - name: "TEST - Upload config"
         if: ${{ inputs.test_only == true }}
         uses: actions/upload-artifact@main
         with:
           name: build_config_test
           path: ${{ env.SOURCE_DIR }}/build.config
 
-      - name: [TEST] Exit
+      - name: "TEST - Exit"
         if: ${{ inputs.test_only == true }}
         run: |
           echo "测试模式：配置生成完成，退出编译"

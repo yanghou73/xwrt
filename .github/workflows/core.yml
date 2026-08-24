@@ -132,7 +132,7 @@ jobs:
         run: |
           cd "$SOURCE_DIR/package/"
           chmod +x $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
-          bash $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
+          X64_VARIANT="${{ inputs.x64_variant }}" bash $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
 
       - name: Post-processing
         run: |

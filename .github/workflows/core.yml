@@ -181,23 +181,7 @@ jobs:
             if [ "${{ inputs.x64_homeproxy }}" == "true" ]; then
               cat $GITHUB_WORKSPACE/fragments/x64-homeproxy.txt >> .config
             fi
-            # 文件系统：先清除默认值，再根据参数设置
-            sed -i '/CONFIG_TARGET_ROOTFS_EXT4FS=/d' .config
-            sed -i '/CONFIG_TARGET_ROOTFS_SQUASHFS=/d' .config
-            sed -i '/CONFIG_TARGET_ROOTFS_ISO=/d' .config
-            case "${{ inputs.x64_filesystem }}" in
-              ext4)
-                echo "CONFIG_TARGET_ROOTFS_EXT4FS=y" >> .config
-                ;;
-              squashfs)
-                echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
-                ;;
-              both)
-                echo "CONFIG_TARGET_ROOTFS_EXT4FS=y" >> .config
-                echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
-                ;;
-            esac
-            echo "x64 文件系统: ${{ inputs.x64_filesystem }}"
+            echo "x64 文件系统将在 defconfig 后设置: ${{ inputs.x64_filesystem }}"
           fi
           
           echo "配置拼接完成"
@@ -217,11 +201,37 @@ jobs:
         run: |
           cd "$SOURCE_DIR"
           make defconfig
+          
+          # x64 文件系统：在 defconfig 后强制设置（defconfig 会恢复默认值）
+          if [ "${{ inputs.platform }}" == "x64" ]; then
+            case "${{ inputs.x64_filesystem }}" in
+              ext4)
+                sed -i 's/CONFIG_TARGET_ROOTFS_SQUASHFS=y/# CONFIG_TARGET_ROOTFS_SQUASHFS is not set/' .config
+                sed -i 's/# CONFIG_TARGET_ROOTFS_EXT4FS is not set/CONFIG_TARGET_ROOTFS_EXT4FS=y/' .config
+                sed -i '/CONFIG_TARGET_ROOTFS_ISO=/d' .config
+                echo "# CONFIG_TARGET_ROOTFS_ISO is not set" >> .config
+                ;;
+              squashfs)
+                sed -i 's/CONFIG_TARGET_ROOTFS_EXT4FS=y/# CONFIG_TARGET_ROOTFS_EXT4FS is not set/' .config
+                sed -i 's/# CONFIG_TARGET_ROOTFS_SQUASHFS is not set/CONFIG_TARGET_ROOTFS_SQUASHFS=y/' .config
+                sed -i '/CONFIG_TARGET_ROOTFS_ISO=/d' .config
+                echo "# CONFIG_TARGET_ROOTFS_ISO is not set" >> .config
+                ;;
+              both)
+                sed -i 's/# CONFIG_TARGET_ROOTFS_EXT4FS is not set/CONFIG_TARGET_ROOTFS_EXT4FS=y/' .config
+                sed -i 's/# CONFIG_TARGET_ROOTFS_SQUASHFS is not set/CONFIG_TARGET_ROOTFS_SQUASHFS=y/' .config
+                ;;
+            esac
+            make defconfig
+          fi
+          
           cp .config build.config
           echo "=== 设备目标检查 ==="
           grep "CONFIG_TARGET_DEVICE" build.config || echo "警告: 未找到设备目标配置！"
           echo "=== 关键包检查 ==="
-          grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd)=" build.config || true
+          grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd|lucky)=" build.config || true
+          echo "=== 文件系统检查 ==="
+          grep -E "CONFIG_TARGET_ROOTFS_(EXT4FS|SQUASHFS)" build.config || true
 
       - name: "TEST - Upload config"
         if: ${{ inputs.test_only == true }}
@@ -234,14 +244,15 @@ jobs:
         if: ${{ inputs.test_only == true }}
         run: |
           echo "测试模式：配置生成完成，退出编译"
-          exit 0
 
       - name: Download packages
+        if: ${{ !inputs.test_only }}
         run: |
           cd "$SOURCE_DIR"
           make download -j8
 
       - name: Compile firmware
+        if: ${{ !inputs.test_only }}
         run: |
           cd "$SOURCE_DIR"
           make -j$(nproc) || {
@@ -251,6 +262,7 @@ jobs:
           }
 
       - name: Organize firmware files
+        if: ${{ !inputs.test_only }}
         run: |
           cd "$SOURCE_DIR"
           mkdir -p "$FIRMWARE_DIR"
@@ -274,6 +286,7 @@ jobs:
           ls -lh .
 
       - name: Upload firmware to Artifacts
+        if: ${{ !inputs.test_only }}
         uses: actions/upload-artifact@main
         with:
           name: firmware_${{ inputs.platform }}

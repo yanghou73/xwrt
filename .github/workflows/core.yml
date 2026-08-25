@@ -268,68 +268,30 @@ jobs:
             echo "未找到 dockerd 源码目录，跳过 patch"
             exit 0
           fi
-          echo "=== hack/make 目录文件 ==="
-          ls -la "$DOCKERD_DIR/hack/make/" 2>/dev/null
-          BD="$DOCKERD_DIR/hack/make/binary-daemon"
-          if [ ! -f "$BD" ]; then
-            echo "未找到 binary-daemon 文件"
-            exit 0
+          echo "=== binary-daemon patch 前 ==="
+          cat "$DOCKERD_DIR/hack/make/binary-daemon"
+          echo "=== 应用上游官方 patch（moby/moby PR #53443）==="
+          # 参考 lede issue #14107 的方案
+          # 在 dockerd 源码目录中应用 patch，跳过不存在的 nested binaries
+          PATCH_FILE="$GITHUB_WORKSPACE/patches/dockerd/001-skip-copy-nested-binaries.patch"
+          if [ -f "$PATCH_FILE" ]; then
+            cd "$DOCKERD_DIR"
+            if patch -p1 --dry-run < "$PATCH_FILE" > /dev/null 2>&1; then
+              patch -p1 < "$PATCH_FILE"
+              echo "Patch 应用成功"
+            else
+              echo "Patch dry-run 失败，可能文件格式不匹配，尝试 set +e 兜底"
+              sed -i 's/^set -e$/set +e/' hack/make/binary-daemon
+              echo "已用 set +e 兜底"
+            fi
+            cd "$OLDPWD"
+          else
+            echo "未找到 patch 文件: $PATCH_FILE"
+            echo "使用 set +e 兜底"
+            sed -i 's/^set -e$/set +e/' "$DOCKERD_DIR/hack/make/binary-daemon"
           fi
-          echo "=== binary-daemon 原始内容 ==="
-          cat "$BD"
-          echo "=== 应用修复：copy_binaries 跳过不存在的文件 ==="
-          # 参考 moby/moby PR #53443 和 lede issue #14107
-          # 修复 copy_binaries 函数：先检查文件是否存在，不存在则跳过
-          BD_PATH="$BD" python3 - << 'PYEOF'
-          import os, re
-          path = os.environ['BD_PATH']
-          with open(path, 'r') as f:
-              content = f.read()
-          # 用更宽松的匹配：找到 copy_binaries 函数并替换其中的 cp 行
-          if 'cp -f "$(command -v "$file")"' in content:
-              # 直接替换 cp 那一行，增加路径检查
-              old_line = '\t\tcp -f "$(command -v "$file")" "$dir/"'
-              new_lines = '\t\tbin_path=$(command -v "$file" 2>/dev/null || true)\n\t\tif [ -z "$bin_path" ]; then\n\t\t\techo "Skipping $file: not found in PATH" >&2\n\t\t\tcontinue\n\t\tfi\n\t\tcp -f "$bin_path" "$dir/"'
-              if old_line in content:
-                  content = content.replace(old_line, new_lines)
-                  with open(path, 'w') as f:
-                      f.write(content)
-                  print("Patch 成功：替换了 cp 行为路径检查模式")
-              else:
-                  print("未找到精确匹配的 cp 行，尝试宽松替换...")
-                  # 宽松匹配：任何包含 cp -f 和 command -v "$file" 的行
-                  lines = content.split('\n')
-                  new_lines = []
-                  replaced = False
-                  for line in lines:
-                      if 'cp -f' in line and 'command -v' in line and '"$file"' in line and not replaced:
-                          indent = '\t\t'
-                          new_lines.append(indent + 'bin_path=$(command -v "$file" 2>/dev/null || true)')
-                          new_lines.append(indent + 'if [ -z "$bin_path" ]; then')
-                          new_lines.append(indent + '\techo "Skipping $file: not found in PATH" >&2')
-                          new_lines.append(indent + '\tcontinue')
-                          new_lines.append(indent + 'fi')
-                          # 保留原 cp 行，但替换 command -v 为 bin_path
-                          new_line = line.replace('"$(command -v "$file")"', '"$bin_path"')
-                          new_lines.append(new_line)
-                          replaced = True
-                      else:
-                          new_lines.append(line)
-                  content = '\n'.join(new_lines)
-                  with open(path, 'w') as f:
-                      f.write(content)
-                  if replaced:
-                      print("Patch 成功：宽松匹配模式")
-                  else:
-                      print("宽松匹配也失败，使用 set +e 兜底")
-          else:
-              print("未找到 cp+command+v 模式，使用 set +e 兜底")
-              content = content.replace('set -e', 'set +e', 1)
-              with open(path, 'w') as f:
-                  f.write(content)
-          PYEOF
-          echo "=== binary-daemon patch 后内容 ==="
-          cat "$BD"
+          echo "=== binary-daemon patch 后 ==="
+          cat "$DOCKERD_DIR/hack/make/binary-daemon"
 
       - name: Compile firmware
         if: ${{ !inputs.test_only }}

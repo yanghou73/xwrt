@@ -259,6 +259,8 @@ jobs:
         if: ${{ !inputs.test_only && inputs.x64_docker }}
         run: |
           cd "$SOURCE_DIR"
+          # 先解压 dockerd 源码（download 阶段只下载不解压）
+          make package/feeds/packages/dockerd/prepare -j1 V=s
           # dockerd 29.x 的 hack/make/binary-daemon 尝试复制 rootlesskit 等附属文件
           # 这些在 lede 构建环境中不存在，导致 cp: cannot stat '' 错误
           # 修复：让 cp 命令失败时不中断编译
@@ -269,6 +271,7 @@ jobs:
             echo "Patch 完成"
           else
             echo "未找到 dockerd 源码目录，跳过 patch"
+            ls build_dir/target-*/ 2>/dev/null || echo "build_dir 也没有"
           fi
 
       - name: Compile firmware

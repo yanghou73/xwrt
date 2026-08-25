@@ -268,20 +268,23 @@ jobs:
             echo "未找到 dockerd 源码目录，跳过 patch"
             exit 0
           fi
-          # dockerd 29.x 编译成功后，"Copying nested executables" 步骤尝试复制
-          # rootlesskit 等附属文件，lede 环境中不存在，导致 cp: cannot stat '' 错误
-          # 修复：给 hack/make.sh 和 binary-daemon 中所有 cp 命令加 || true
-          for f in "$DOCKERD_DIR/hack/make.sh" "$DOCKERD_DIR/hack/make/binary-daemon"; do
-            if [ -f "$f" ]; then
-              # 显示 patch 前的 cp 行
-              echo "--- $f cp 行（patch 前）---"
-              grep -n '^\s*cp ' "$f" || echo "(无 cp 行)"
-              # 给所有以 cp 开头的行加 || true（跳过已有 || true 的行）
-              sed -i '/^\s*cp / { /|| true/ ! s/$/ 2>\/dev\/null || true/ }' "$f"
-              echo "--- $f cp 行（patch 后）---"
-              grep -n '^\s*cp ' "$f" || echo "(无 cp 行)"
-            fi
+          # 找到 "Copying nested" 所在的文件，定位出错的 cp 命令
+          echo "=== 搜索 Copying nested ==="
+          grep -rn "Copying nested" "$DOCKERD_DIR/hack/" || echo "(未找到)"
+          echo "=== 搜索含 cp 且含 command -v 的行 ==="
+          grep -rn 'cp.*command -v\|command -v.*cp' "$DOCKERD_DIR/hack/" || echo "(未找到)"
+          echo "=== hack/make 目录下所有文件 ==="
+          ls -la "$DOCKERD_DIR/hack/make/" 2>/dev/null || echo "(目录不存在)"
+          # 给 hack 目录下所有 .sh 文件中含 cp 的行加 || true
+          find "$DOCKERD_DIR/hack" -name "*.sh" -type f | while read f; do
+            sed -i '/^[[:space:]]*cp[[:space:]]/ { /|| true/ ! s/$/ 2>\/dev\/null || true/ }' "$f"
           done
+          # binary-daemon 没有 .sh 后缀
+          if [ -f "$DOCKERD_DIR/hack/make/binary-daemon" ]; then
+            sed -i '/^[[:space:]]*cp[[:space:]]/ { /|| true/ ! s/$/ 2>\/dev\/null || true/ }' "$DOCKERD_DIR/hack/make/binary-daemon"
+          fi
+          echo "=== patch 完成，验证含 cp 的行 ==="
+          grep -rn 'cp.*|| true' "$DOCKERD_DIR/hack/" | head -20 || echo "(无匹配)"
 
       - name: Compile firmware
         if: ${{ !inputs.test_only }}

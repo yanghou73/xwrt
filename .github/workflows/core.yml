@@ -249,7 +249,11 @@ jobs:
         if: ${{ !inputs.test_only }}
         run: |
           cd "$SOURCE_DIR"
-          make download -j8
+          # 设置超时：单个下载最多 10 分钟，整体最多 30 分钟
+          timeout 1800 make download -j8 || {
+            echo "download 超时或失败，重试一次（单线程）"
+            timeout 600 make download -j1 V=s
+          }
 
       - name: Patch dockerd build script
         if: ${{ !inputs.test_only && inputs.x64_docker }}

@@ -30,8 +30,8 @@ UPDATE_PACKAGE() {
     fi
   done
 
-  # clone 失败不中断（部分仓库可能已删除/改名）
-  git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git" || {
+  # clone 失败不中断（部分仓库可能已删除/改名），超时 2 分钟
+  timeout 120 git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git" || {
     echo "警告：克隆失败 $PKG_REPO ($PKG_BRANCH)，跳过"
     return 0
   }
@@ -50,7 +50,7 @@ UPDATE_PACKAGE() {
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git || true
+timeout 120 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git || true
 
 # ============================================================
 # iStore 应用商店（standard + full 都执行）

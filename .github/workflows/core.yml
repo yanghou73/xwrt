@@ -259,39 +259,25 @@ jobs:
         if: ${{ !inputs.test_only && inputs.x64_docker }}
         run: |
           cd "$SOURCE_DIR"
-          # 先编译 host 工具（prepare 需要 libdeflate-gzip 等）
-          make tools/compile -j$(nproc)
-          # 解压 dockerd 源码
-          make package/feeds/packages/dockerd/prepare -j1 V=s
-          DOCKERD_DIR=$(find build_dir/target-*/dockerd-* -maxdepth 0 -type d 2>/dev/null | head -1)
-          if [ -z "$DOCKERD_DIR" ]; then
-            echo "未找到 dockerd 源码目录，跳过 patch"
+          # OpenWrt 标准方式：把 patch 放到 feed 包的 patches/ 目录
+          # prepare 阶段会自动应用，不会被 make world 覆盖
+          DOCKERD_PKG_DIR="feeds/packages/utils/dockerd"
+          if [ ! -d "$DOCKERD_PKG_DIR" ]; then
+            echo "未找到 dockerd 包目录: $DOCKERD_PKG_DIR"
             exit 0
           fi
-          echo "=== binary-daemon patch 前 ==="
-          cat "$DOCKERD_DIR/hack/make/binary-daemon"
-          echo "=== 应用上游官方 patch（moby/moby PR #53443）==="
-          # 参考 lede issue #14107 的方案
-          # 在 dockerd 源码目录中应用 patch，跳过不存在的 nested binaries
-          PATCH_FILE="$GITHUB_WORKSPACE/patches/dockerd/001-skip-copy-nested-binaries.patch"
-          if [ -f "$PATCH_FILE" ]; then
-            cd "$DOCKERD_DIR"
-            if patch -p1 --dry-run < "$PATCH_FILE" > /dev/null 2>&1; then
-              patch -p1 < "$PATCH_FILE"
-              echo "Patch 应用成功"
-            else
-              echo "Patch dry-run 失败，可能文件格式不匹配，尝试 set +e 兜底"
-              sed -i 's/^set -e$/set +e/' hack/make/binary-daemon
-              echo "已用 set +e 兜底"
-            fi
-            cd "$OLDPWD"
+          mkdir -p "$DOCKERD_PKG_DIR/patches"
+          PATCH_SRC="$GITHUB_WORKSPACE/patches/dockerd/001-skip-copy-nested-binaries.patch"
+          if [ -f "$PATCH_SRC" ]; then
+            cp "$PATCH_SRC" "$DOCKERD_PKG_DIR/patches/"
+            echo "已复制 patch 到 $DOCKERD_PKG_DIR/patches/"
+            ls -la "$DOCKERD_PKG_DIR/patches/"
+            # 验证 patch 格式
+            echo "=== patch 内容 ==="
+            cat "$DOCKERD_PKG_DIR/patches/001-skip-copy-nested-binaries.patch"
           else
-            echo "未找到 patch 文件: $PATCH_FILE"
-            echo "使用 set +e 兜底"
-            sed -i 's/^set -e$/set +e/' "$DOCKERD_DIR/hack/make/binary-daemon"
+            echo "未找到 patch 源文件: $PATCH_SRC"
           fi
-          echo "=== binary-daemon patch 后 ==="
-          cat "$DOCKERD_DIR/hack/make/binary-daemon"
 
       - name: Compile firmware
         if: ${{ !inputs.test_only }}

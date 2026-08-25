@@ -263,16 +263,25 @@ jobs:
           make tools/compile -j$(nproc)
           # 解压 dockerd 源码
           make package/feeds/packages/dockerd/prepare -j1 V=s
-          # dockerd 29.x 的 hack/make/binary-daemon 尝试复制 rootlesskit 等附属文件
-          # 这些在 lede 构建环境中不存在，导致 cp: cannot stat '' 错误
-          # 修复：让 cp 命令失败时不中断编译
           DOCKERD_DIR=$(find build_dir/target-*/dockerd-* -maxdepth 0 -type d 2>/dev/null | head -1)
-          if [ -n "$DOCKERD_DIR" ] && [ -f "$DOCKERD_DIR/hack/make/binary-daemon" ]; then
-            sed -i 's/cp -f "$(command -v "$file")" "$dir\/"/cp -f "$(command -v "$file")" "$dir\/" 2>\/dev\/null || true/g' "$DOCKERD_DIR/hack/make/binary-daemon"
-            echo "Patch 完成: $DOCKERD_DIR/hack/make/binary-daemon"
-          else
-            echo "未找到 dockerd 源码或 binary-daemon 文件，跳过 patch"
+          if [ -z "$DOCKERD_DIR" ]; then
+            echo "未找到 dockerd 源码目录，跳过 patch"
+            exit 0
           fi
+          # dockerd 29.x 编译成功后，"Copying nested executables" 步骤尝试复制
+          # rootlesskit 等附属文件，lede 环境中不存在，导致 cp: cannot stat '' 错误
+          # 修复：给 hack/make.sh 和 binary-daemon 中所有 cp 命令加 || true
+          for f in "$DOCKERD_DIR/hack/make.sh" "$DOCKERD_DIR/hack/make/binary-daemon"; do
+            if [ -f "$f" ]; then
+              # 显示 patch 前的 cp 行
+              echo "--- $f cp 行（patch 前）---"
+              grep -n '^\s*cp ' "$f" || echo "(无 cp 行)"
+              # 给所有以 cp 开头的行加 || true（跳过已有 || true 的行）
+              sed -i '/^\s*cp / { /|| true/ ! s/$/ 2>\/dev\/null || true/ }' "$f"
+              echo "--- $f cp 行（patch 后）---"
+              grep -n '^\s*cp ' "$f" || echo "(无 cp 行)"
+            fi
+          done
 
       - name: Compile firmware
         if: ${{ !inputs.test_only }}

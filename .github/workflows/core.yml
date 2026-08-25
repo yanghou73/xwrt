@@ -259,19 +259,19 @@ jobs:
         if: ${{ !inputs.test_only && inputs.x64_docker }}
         run: |
           cd "$SOURCE_DIR"
-          # 先解压 dockerd 源码（download 阶段只下载不解压）
+          # 先编译 host 工具（prepare 需要 libdeflate-gzip 等）
+          make tools/compile -j$(nproc)
+          # 解压 dockerd 源码
           make package/feeds/packages/dockerd/prepare -j1 V=s
           # dockerd 29.x 的 hack/make/binary-daemon 尝试复制 rootlesskit 等附属文件
           # 这些在 lede 构建环境中不存在，导致 cp: cannot stat '' 错误
           # 修复：让 cp 命令失败时不中断编译
           DOCKERD_DIR=$(find build_dir/target-*/dockerd-* -maxdepth 0 -type d 2>/dev/null | head -1)
           if [ -n "$DOCKERD_DIR" ] && [ -f "$DOCKERD_DIR/hack/make/binary-daemon" ]; then
-            echo "Patching $DOCKERD_DIR/hack/make/binary-daemon"
             sed -i 's/cp -f "$(command -v "$file")" "$dir\/"/cp -f "$(command -v "$file")" "$dir\/" 2>\/dev\/null || true/g' "$DOCKERD_DIR/hack/make/binary-daemon"
-            echo "Patch 完成"
+            echo "Patch 完成: $DOCKERD_DIR/hack/make/binary-daemon"
           else
-            echo "未找到 dockerd 源码目录，跳过 patch"
-            ls build_dir/target-*/ 2>/dev/null || echo "build_dir 也没有"
+            echo "未找到 dockerd 源码或 binary-daemon 文件，跳过 patch"
           fi
 
       - name: Compile firmware

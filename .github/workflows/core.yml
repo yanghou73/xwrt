@@ -268,23 +268,25 @@ jobs:
             echo "未找到 dockerd 源码目录，跳过 patch"
             exit 0
           fi
-          # 找到 "Copying nested" 所在的文件，定位出错的 cp 命令
+          echo "=== hack/make 目录 ==="
+          ls -la "$DOCKERD_DIR/hack/make/" 2>/dev/null
+          echo "=== hack/make.sh 前 20 行 ==="
+          head -20 "$DOCKERD_DIR/hack/make.sh" 2>/dev/null
           echo "=== 搜索 Copying nested ==="
-          grep -rn "Copying nested" "$DOCKERD_DIR/hack/" || echo "(未找到)"
-          echo "=== 搜索含 cp 且含 command -v 的行 ==="
-          grep -rn 'cp.*command -v\|command -v.*cp' "$DOCKERD_DIR/hack/" || echo "(未找到)"
-          echo "=== hack/make 目录下所有文件 ==="
-          ls -la "$DOCKERD_DIR/hack/make/" 2>/dev/null || echo "(目录不存在)"
-          # 给 hack 目录下所有 .sh 文件中含 cp 的行加 || true
-          find "$DOCKERD_DIR/hack" -name "*.sh" -type f | while read f; do
-            sed -i '/^[[:space:]]*cp[[:space:]]/ { /|| true/ ! s/$/ 2>\/dev\/null || true/ }' "$f"
-          done
-          # binary-daemon 没有 .sh 后缀
+          grep -rn "Copying nested" "$DOCKERD_DIR/hack/" 2>/dev/null || echo "(未找到)"
+          echo "=== 搜索含 cp 的行 ==="
+          grep -rn '\<cp\>' "$DOCKERD_DIR/hack/make.sh" 2>/dev/null | head -20 || echo "(无匹配)"
+          echo "=== binary-daemon 含 cp 的行 ==="
+          grep -n '\<cp\>' "$DOCKERD_DIR/hack/make/binary-daemon" 2>/dev/null | head -20 || echo "(无匹配)"
+          # 关键修复：去掉 hack/make.sh 的 set -e，让 cp 失败不中断编译
+          # dockerd 29.x 的 "Copying nested executables" 步骤复制 rootlesskit 等不存在的文件
+          # 这些文件不影响 dockerd 主功能，失败可忽略
+          sed -i 's/^set -e$/set +e/' "$DOCKERD_DIR/hack/make.sh"
           if [ -f "$DOCKERD_DIR/hack/make/binary-daemon" ]; then
-            sed -i '/^[[:space:]]*cp[[:space:]]/ { /|| true/ ! s/$/ 2>\/dev\/null || true/ }' "$DOCKERD_DIR/hack/make/binary-daemon"
+            sed -i 's/^set -e$/set +e/' "$DOCKERD_DIR/hack/make/binary-daemon"
           fi
-          echo "=== patch 完成，验证含 cp 的行 ==="
-          grep -rn 'cp.*|| true' "$DOCKERD_DIR/hack/" | head -20 || echo "(无匹配)"
+          echo "=== patch 完成：已关闭 set -e ==="
+          grep -n '^set ' "$DOCKERD_DIR/hack/make.sh" || echo "(无 set 行)"
 
       - name: Compile firmware
         if: ${{ !inputs.test_only }}

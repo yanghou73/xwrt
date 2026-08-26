@@ -2,7 +2,7 @@
 # ============================================================
 # x64 包拉取脚本
 # standard 模式：iStore + 核心代理（OpenClash/PassWall/PassWall2）
-# full 模式：30+ 第三方插件（多主题/系统工具/应用等）
+# full 模式：精简实用包（DNS过滤/系统工具/打印/网络应用/安全）
 # 验证状态：⏳ 待验证
 # 注意：部分仓库可能因作者删除/改名而 clone 失败，失败不中断编译
 # ============================================================
@@ -65,54 +65,35 @@ if [ "$X64_VARIANT" != "full" ]; then
   exit 0
 fi
 
-echo "full 模式：继续拉取高大全包..."
+echo "full 模式：继续拉取精简实用包..."
 
 # ============================================================
-# DNS
+# DNS / 过滤
 # ============================================================
-UPDATE_PACKAGE "smartdns" "pymumu/openwrt-smartdns" "master"
-UPDATE_PACKAGE "luci-app-smartdns" "pymumu/luci-app-smartdns" "master"
-UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
 UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master"
-
-# ============================================================
-# 主题（多主题）
-# ============================================================
-UPDATE_PACKAGE "design" "0x676e67/luci-theme-design" "main"
-UPDATE_PACKAGE "edge" "garypang13/luci-theme-edge" "master"
-UPDATE_PACKAGE "opentopd" "sirpdboy/luci-theme-opentopd" "main"
-UPDATE_PACKAGE "argon" "jerrykuku/luci-theme-argon" "master"
 
 # ============================================================
 # 系统工具
 # ============================================================
 UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "main"
-UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
 UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
 UPDATE_PACKAGE "bandwidthd" "AlexZhuo/luci-app-bandwidthd" "master"
 
 # ============================================================
-# 应用
+# 打印（cupsd 为 lede 内置，无需 clone）
 # ============================================================
-UPDATE_PACKAGE "alist" "sbwml/luci-app-alist" "main"
+
+# ============================================================
+# 安全
+# ============================================================
+UPDATE_PACKAGE "bearDropper" "NateLol/luci-app-bearDropper" "master"
+
+# ============================================================
+# 网络应用
+# ============================================================
 UPDATE_PACKAGE "onliner" "selfcan/luci-app-onliner" "main"
 UPDATE_PACKAGE "serverchan" "tty228/luci-app-serverchan" "master"
-UPDATE_PACKAGE "aliddns" "honwen/luci-app-aliddns" "master"
-UPDATE_PACKAGE "dogcom" "mchome/luci-app-dogcom" "master"
-UPDATE_PACKAGE "mentohust" "BoringCat/luci-app-mentohust" "master"
-UPDATE_PACKAGE "minieap" "BoringCat/luci-app-minieap" "master"
-UPDATE_PACKAGE "npc" "ghosthgytop/luci-app-npc" "master"
-UPDATE_PACKAGE "bearDropper" "NateLol/luci-app-bearDropper" "master"
 UPDATE_PACKAGE "easytier" "EasyTier/luci-app-easytier" "main"
+UPDATE_PACKAGE "npc" "ghosthgytop/luci-app-npc" "master"
 
-# ============================================================
-# daed/dae
-# ============================================================
-UPDATE_PACKAGE "daed" "QiuSimons/luci-app-daed" "master"
-
-# ============================================================
-# 其他
-# ============================================================
-UPDATE_PACKAGE "vssr" "MilesPoupart/luci-app-vssr" "master"
-
-echo "full 模式：高大全包拉取完成"
+echo "full 模式：精简实用包拉取完成"

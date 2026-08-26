@@ -77,7 +77,10 @@ UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master"
 # ============================================================
 UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "main"
 UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
-UPDATE_PACKAGE "bandwidthd" "AlexZhuo/luci-app-bandwidthd" "master"
+# bandwidthd 是 lede 内置包，只 clone LuCI 面板，不删官方源
+timeout 120 git clone --depth=1 --single-branch --branch master "https://github.com/AlexZhuo/luci-app-bandwidthd.git" || {
+  echo "警告：克隆失败 AlexZhuo/luci-app-bandwidthd (master)，跳过"
+}
 
 # ============================================================
 # 打印（cupsd 为 lede 内置，无需 clone）

@@ -106,9 +106,9 @@ jobs:
         if: ${{ inputs.cache == true }}
         uses: actions/cache@main
         with:
-          key: ${{ inputs.target }}-${{ inputs.subtarget }}-${{ inputs.config }}-${{ env.SOURCE_HASH }}
+          key: ubuntu-22.04-${{ inputs.target }}-${{ inputs.subtarget }}-${{ inputs.config }}-${{ env.SOURCE_HASH }}
           restore-keys: |
-            ${{ inputs.target }}-${{ inputs.subtarget }}-${{ inputs.config }}-
+            ubuntu-22.04-${{ inputs.target }}-${{ inputs.subtarget }}-${{ inputs.config }}-
           path: |
             ${{ env.SOURCE_DIR }}/.ccache
             ${{ env.SOURCE_DIR }}/staging_dir/host*

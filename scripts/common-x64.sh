@@ -75,7 +75,7 @@ UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master"
 # ============================================================
 # 系统工具
 # ============================================================
-UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "main"
+UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "master"
 UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
 # bandwidthd 是 lede 内置包，只 clone LuCI 面板，不删官方源
 timeout 120 git clone --depth=1 --single-branch --branch master "https://github.com/AlexZhuo/luci-app-bandwidthd.git" || {
@@ -94,7 +94,7 @@ UPDATE_PACKAGE "bearDropper" "NateLol/luci-app-bearDropper" "master"
 # ============================================================
 # 网络应用
 # ============================================================
-UPDATE_PACKAGE "onliner" "selfcan/luci-app-onliner" "main"
+UPDATE_PACKAGE "onliner" "selfcan/luci-app-onliner" "master"
 UPDATE_PACKAGE "serverchan" "tty228/luci-app-serverchan" "master"
 UPDATE_PACKAGE "easytier" "EasyTier/luci-app-easytier" "main"
 UPDATE_PACKAGE "npc" "ghosthgytop/luci-app-npc" "master"

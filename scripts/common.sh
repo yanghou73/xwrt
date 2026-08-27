@@ -53,7 +53,6 @@ UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-25.12"
 # ============================================================
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
-UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
 # passwall 依赖包（大量依赖在 kenzok8/small 中）
 git clone --depth=1 https://github.com/kenzok8/small.git
@@ -77,9 +76,19 @@ rm -rfv small/luci-app-fchomo
 UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
 
 # ============================================================
-# 其他工具
+# Lucky（端口转发/DDNS/定时重启等）
 # ============================================================
-UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
+UPDATE_PACKAGE "lucky" "tty228/luci-app-lucky" "master"
+
+# ============================================================
+# iStore 应用商店
+# ============================================================
+UPDATE_PACKAGE "istore" "linkease/istore" "main"
+
+# ============================================================
+# Tailscale（远程访问/虚拟组网）
+# ============================================================
+UPDATE_PACKAGE "tailscale" "asvow/luci-tailscale" "main"
 
 # ============================================================
 # 踩坑记录：
@@ -87,4 +96,5 @@ UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
 # 2. AIROHA 平台 smartdns 用 feeds 版本，不用 pymumu 最新版
 # 3. 脚本在 package/ 目录下执行，路径用 ../feeds/
 # 4. 不自动更新 sing-box 版本，避免 Go 版本冲突
+# 5. lucky 和 istore 需要手动 clone，feeds 中没有
 # ============================================================

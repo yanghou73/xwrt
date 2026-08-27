@@ -53,6 +53,7 @@ UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-25.12"
 # ============================================================
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
+UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
 # passwall 依赖包（大量依赖在 kenzok8/small 中）
 git clone --depth=1 https://github.com/kenzok8/small.git

@@ -78,8 +78,9 @@ UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-s
 
 # ============================================================
 # Lucky（端口转发/DDNS/定时重启等）
+# 注意：tty228/luci-app-lucky 已删除，改用 gdy666 仓库
 # ============================================================
-UPDATE_PACKAGE "lucky" "tty228/luci-app-lucky" "master"
+UPDATE_PACKAGE "lucky" "gdy666/luci-app-lucky" "main"
 
 # ============================================================
 # iStore 应用商店
@@ -88,8 +89,8 @@ UPDATE_PACKAGE "istore" "linkease/istore" "main"
 
 # ============================================================
 # Tailscale（远程访问/虚拟组网）
+# LuCI 面板已在 OpenWrt 官方 luci feeds 中，无需 clone
 # ============================================================
-UPDATE_PACKAGE "tailscale" "asvow/luci-tailscale" "main"
 
 # ============================================================
 # 踩坑记录：

@@ -2,16 +2,14 @@
 # XG-040G-MD (AIROHA EN7581) 平台基础配置
 # 源码：bingoguo93/immortalwrt 6.18
 # 验证状态：✅ 已验证可编译刷入
+# 通用配置在 fragments/general.txt + devtools.txt + proxy-*.txt
+# 本文件仅包含 AIROHA 专属配置，避免与通用片段重复
 # ============================================================
 
 # --- 目标平台 ---
 CONFIG_TARGET_airoha=y
 CONFIG_TARGET_airoha_an7581=y
 CONFIG_TARGET_DEVICE_airoha_an7581_DEVICE_nokia_xg-040g-md=y
-# 其他设备注释掉，只保留 040g-md
-# CONFIG_TARGET_DEVICE_airoha_an7581_DEVICE_nokia_xg-040g-tf=y
-# CONFIG_TARGET_DEVICE_airoha_an7581_DEVICE_nokia_xg-140g-md=y
-# CONFIG_TARGET_DEVICE_airoha_an7581_DEVICE_nokia_xg-140g-tf=y
 
 # --- NPU 固件（AIROHA 专属） ---
 CONFIG_PACKAGE_airoha-en7581-npu-firmware=y
@@ -25,13 +23,94 @@ CONFIG_BUSYBOX_CUSTOM=y
 CONFIG_BUSYBOX_CONFIG_DEVMEM=y
 CONFIG_PACKAGE_kmod-dummy=y
 
+# --- 编译选项 ---
+CONFIG_CCACHE=y
+CONFIG_DEVEL=y
+CONFIG_TARGET_MULTI_PROFILE=y
+CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+CONFIG_TARGET_ROOTFS_INITRAMFS=n
+CONFIG_FEED_video=n
+
+# --- 内核模块（AIROHA 专属，general.txt 已含 nft-tproxy/nft-socket/tun 等） ---
+CONFIG_PACKAGE_kmod-ata-ahci=y
+CONFIG_PACKAGE_kmod-ata-core=y
+CONFIG_PACKAGE_kmod-bonding=y
+CONFIG_PACKAGE_kmod-dsa=y
+CONFIG_PACKAGE_kmod-fs-ksmbd=y
+CONFIG_PACKAGE_kmod-fuse=y
+CONFIG_PACKAGE_kmod-inet-diag=y
+CONFIG_PACKAGE_kmod-inet-mptcp-diag=y
+CONFIG_PACKAGE_kmod-mtd-rw=y
+CONFIG_PACKAGE_kmod-netlink-diag=y
+CONFIG_PACKAGE_kmod-nf-nat6=y
+CONFIG_PACKAGE_kmod-nft-arp=y
+CONFIG_PACKAGE_kmod-nft-bridge=y
+CONFIG_PACKAGE_kmod-nft-connlimit=y
+CONFIG_PACKAGE_kmod-nft-core=y
+CONFIG_PACKAGE_kmod-nft-dup-inet=y
+CONFIG_PACKAGE_kmod-nft-fib=y
+CONFIG_PACKAGE_kmod-nft-fullcone=y
+CONFIG_PACKAGE_kmod-nft-nat=y
+CONFIG_PACKAGE_kmod-nft-netdev=y
+CONFIG_PACKAGE_kmod-nft-offload=y
+CONFIG_PACKAGE_kmod-nft-queue=y
+CONFIG_PACKAGE_kmod-nft-xfrm=y
+
+# --- LuCI 扩展（general.txt 已含基础 LuCI/主题/UpnP/SmartDNS/Lucky/iStore 等） ---
+CONFIG_PACKAGE_luci-base=y
+CONFIG_PACKAGE_luci-compat=y
+CONFIG_PACKAGE_luci-lib-base=y
+CONFIG_PACKAGE_luci-lib-ipkg=y
+CONFIG_PACKAGE_luci-lua-runtime=y
+CONFIG_PACKAGE_luci-proto-relay=y
+CONFIG_PACKAGE_luci-app-samba4=y
+CONFIG_PACKAGE_luci-app-autoreboot=y
+CONFIG_PACKAGE_luci-app-gecoosac=y
+CONFIG_PACKAGE_luci-app-wolplus=y
+
+# --- 系统工具（devtools.txt 已含 bash/strace(禁用)/tcpdump/nano 等） ---
+CONFIG_PACKAGE_autocore-arm=y
+CONFIG_PACKAGE_automount=y
+CONFIG_PACKAGE_blkid=y
+CONFIG_PACKAGE_cfdisk=y
+CONFIG_PACKAGE_cgdisk=y
+CONFIG_PACKAGE_cpufreq=y
+CONFIG_PACKAGE_dmesg=y
+CONFIG_PACKAGE_exfat-fsck=y
+CONFIG_PACKAGE_exfat-mkfs=y
+CONFIG_PACKAGE_fdisk=y
+CONFIG_PACKAGE_gdisk=y
+CONFIG_PACKAGE_lsblk=y
+CONFIG_PACKAGE_mmc-utils=y
+CONFIG_PACKAGE_nand-utils=y
+CONFIG_PACKAGE_nvme-cli=y
+CONFIG_PACKAGE_libnvme=y
+CONFIG_PACKAGE_openssl-util=y
+CONFIG_PACKAGE_proto-bonding=y
+CONFIG_PACKAGE_sfdisk=y
+CONFIG_PACKAGE_sgdisk=y
+CONFIG_PACKAGE_smartmontools=y
+CONFIG_PACKAGE_smartmontools-drivedb=y
+CONFIG_PACKAGE_ucode-mod-math=y
+CONFIG_PACKAGE_usb-modeswitch=y
+CONFIG_PACKAGE_usbmuxd=y
+CONFIG_PACKAGE_usbutils=y
+CONFIG_PACKAGE_libimobiledevice=y
+# strace 在 AIROHA 平台可用（lede 内核头文件不兼容问题不影响此平台）
+CONFIG_PACKAGE_strace=y
+
 # --- 禁用不需要的包 ---
 CONFIG_PACKAGE_vlmcsd=n
+CONFIG_PACKAGE_luci-app-attendedsysupgrade=n
+CONFIG_PACKAGE_luci-app-wol=n
 
 # ============================================================
 # 注意事项：
 # 1. 必须用 bingoguo93/immortalwrt 6.18 分支（输出 .bin，设备可刷）
 # 2. immortalwrt/immortalwrt master 输出 .itb，设备 U-Boot 不认
 # 3. smartdns 用 feeds 自带版本，pymumu 最新版编译不兼容
-# 4. 无 WiFi 设备，建议选择 wifi-no 编译选项节省空间
+# 4. 无 WiFi 设备，不需要 WiFi 相关包
+# 5. strace 在 AIROHA 平台可用（devtools.txt 中因 lede 不兼容而注释掉）
+# 6. tailscale/rust/argon 修复已由 post.sh 统一处理
+# 7. AIROHA 专属包由 airoha-pre.sh 克隆（airoha-npu/viking/qmodem/ddns-go）
 # ============================================================

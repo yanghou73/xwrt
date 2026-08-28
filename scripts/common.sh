@@ -57,11 +57,16 @@ UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
 # passwall 依赖包（大量依赖在 kenzok8/small 中）
 git clone --depth=1 https://github.com/kenzok8/small.git
-# ⚠️  重要：删除有递归依赖问题的包
-# luci-app-fchomo 会导致 make defconfig 失败（recursive dependency detected）
-# 进而导致设备目标丢失，不生成固件
+# ⚠️  重要：删除有问题的包
+# luci-app-fchomo: 递归依赖导致 make defconfig 失败
+# xray-core/geoview/v2ray-geodata: Go 包，passwall2 依赖，GitHub Actions 编译易失败
+# sing-box: Go 包，体积大，passwall2 依赖
 rm -rfv small/luci-app-fchomo
+rm -rfv small/luci-app-passwall2
+rm -rfv small/xray-core
 rm -rfv small/geoview
+rm -rfv small/v2ray-geodata
+rm -rfv small/sing-box
 
 # ============================================================
 # DNS

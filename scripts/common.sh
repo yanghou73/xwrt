@@ -61,6 +61,7 @@ git clone --depth=1 https://github.com/kenzok8/small.git
 # luci-app-fchomo 会导致 make defconfig 失败（recursive dependency detected）
 # 进而导致设备目标丢失，不生成固件
 rm -rfv small/luci-app-fchomo
+rm -rfv small/geoview
 
 # ============================================================
 # DNS

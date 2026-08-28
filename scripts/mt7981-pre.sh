@@ -2,7 +2,7 @@
 # ============================================================
 # MT7981 平台预处理脚本
 # 验证状态：✅ 6.6 内核 6in4 移除已验证
-#           ⏳ 5.4 内核 6in4 移除 + mt_wifi 补丁待验证
+#           ⏳ 5.4 内核 6in4 移除 + mt_wifi 补丁 + DEV_PATH_MTK_WDMA 修复待验证
 # 参考：Ljzkirito/Actions-ImmortalWrt diy-part1.sh
 # ============================================================
 
@@ -59,6 +59,26 @@ PATCH_EOF
   echo "已应用 mt_wifi 性能补丁（token_rx_cnt: 4592→6144）"
 else
   echo "提示：未找到 mt_wifi 补丁目录（非 5.4 内核，跳过）"
+fi
+
+# ============================================================
+# 修复 DEV_PATH_MTK_WDMA 枚举定义缺失（仅 5.4 内核，hanwckf 源码）
+# 问题：v6.6 nft hw offload 补丁在 nft_flow_offload.c 中引用了
+#       DEV_PATH_MTK_WDMA，但 v5.15 补丁在 netdevice.h 中定义
+#       enum net_device_path_type 时只到 DEV_PATH_DSA，缺少该值
+# 修复：在 v5.15 补丁的枚举定义中添加 DEV_PATH_MTK_WDMA
+# ============================================================
+HW_OFFLOAD_PATCH="target/linux/mediatek/patches-5.4/999-1718-v5.15-net-netfilter-add-nf-hw-offload.patch"
+if [ -f "$HW_OFFLOAD_PATCH" ]; then
+  if ! grep -q 'DEV_PATH_MTK_WDMA' "$HW_OFFLOAD_PATCH"; then
+    sed -i 's/^\(\+\tDEV_PATH_DSA,\)$/\1\n+\tDEV_PATH_MTK_WDMA,/' "$HW_OFFLOAD_PATCH"
+    sed -i 's/@@ -843,6 +843,59 @@/@@ -843,6 +843,60 @@/' "$HW_OFFLOAD_PATCH"
+    echo "已修复 DEV_PATH_MTK_WDMA 枚举定义缺失"
+  else
+    echo "DEV_PATH_MTK_WDMA 已存在，跳过修复"
+  fi
+else
+  echo "提示：未找到 hw offload 补丁（非 5.4 内核，跳过）"
 fi
 
 echo "MT7981 预处理完成！"

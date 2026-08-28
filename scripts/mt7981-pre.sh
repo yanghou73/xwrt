@@ -9,6 +9,19 @@
 echo "=== MT7981 预处理 ==="
 
 # ============================================================
+# 移除未使用的 feeds 包（避免编译失败干扰，减少编译时间）
+# v2ray-geodata 等: 未选中安装，但 feeds install -a 后存在于 package/feeds，
+#                   其下载/编译失败可能干扰整体构建
+# ============================================================
+for pkg in v2ray-geodata v2ray-core xray-core; do
+  pkg_dir=$(find feeds -maxdepth 3 -type d -name "$pkg" 2>/dev/null | head -1)
+  if [ -n "$pkg_dir" ]; then
+    rm -rf "$pkg_dir"
+    echo "已移除未使用的包: $pkg ($pkg_dir)"
+  fi
+done
+
+# ============================================================
 # 移除 6in4（IPv6 隧道，家庭环境不需要）
 # 5.4 和 6.6 内核路径不同：
 #   5.4: package/emortal/ipv6-helper/Makefile

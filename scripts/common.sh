@@ -53,14 +53,14 @@ UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-25.12"
 # ============================================================
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
-UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
+# passwall2 已禁用：依赖 xray-core/geoview 等 Go 包，GitHub Actions 编译易失败
+# UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
 # passwall 依赖包（大量依赖在 kenzok8/small 中）
 git clone --depth=1 https://github.com/kenzok8/small.git
 # ⚠️  重要：删除有问题的包
 # luci-app-fchomo: 递归依赖导致 make defconfig 失败
-# xray-core/geoview/v2ray-geodata: Go 包，passwall2 依赖，GitHub Actions 编译易失败
-# sing-box: Go 包，体积大，passwall2 依赖
+# luci-app-passwall2/xray-core/geoview/v2ray-geodata/sing-box: passwall2 相关 Go 包
 rm -rfv small/luci-app-fchomo
 rm -rfv small/luci-app-passwall2
 rm -rfv small/xray-core

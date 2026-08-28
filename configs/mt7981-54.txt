@@ -366,7 +366,7 @@ CONFIG_PACKAGE_wifi-dats=y
 
 # --- 禁用不需要的包 ---
 # netspeedtest 依赖 python3-email/python3-pkg-resources，5.4 源中可能无此包
-# CONFIG_PACKAGE_luci-app-netspeedtest is not set
+CONFIG_PACKAGE_luci-app-netspeedtest=n
 CONFIG_PACKAGE_luci-app-msd_lite=n
 CONFIG_PACKAGE_luci-app-omcproxy=n
 CONFIG_PACKAGE_luci-app-attendedsysupgrade=n

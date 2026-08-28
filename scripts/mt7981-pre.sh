@@ -2,7 +2,7 @@
 # ============================================================
 # MT7981 平台预处理脚本
 # 验证状态：✅ 6.6 内核 6in4 移除已验证
-#           ⏳ 5.4 内核 6in4 移除 + mt_wifi 补丁 + DEV_PATH_MTK_WDMA 修复待验证
+#           ⏳ 5.4 内核 6in4 移除 + mt_wifi 补丁 + DEV_PATH_MTK_WDMA 修复 + 999-2708 上下文修复待验证
 # 参考：Ljzkirito/Actions-ImmortalWrt diy-part1.sh
 # ============================================================
 
@@ -79,6 +79,25 @@ if [ -f "$HW_OFFLOAD_PATCH" ]; then
   fi
 else
   echo "提示：未找到 hw offload 补丁（非 5.4 内核，跳过）"
+fi
+
+# ============================================================
+# 修复 999-2708 补丁上下文不匹配（仅 5.4 内核，hanwckf 源码）
+# 问题：999-1718 修复添加了 DEV_PATH_MTK_WDMA，导致 999-2708 补丁
+#       期望的上下文 DEV_PATH_DSA → }; 变为 DEV_PATH_DSA → DEV_PATH_MTK_WDMA → };
+# 修复：在 999-2708 补丁中添加 DEV_PATH_MTK_WDMA 作为上下文行
+# ============================================================
+PATCH_2708="target/linux/mediatek/patches-5.4/999-2708-mtkhnat-add-support-for-virtual-interface-acceleration.patch"
+if [ -f "$PATCH_2708" ]; then
+  if ! grep -q 'DEV_PATH_MTK_WDMA' "$PATCH_2708"; then
+    sed -i 's/@@ -849,6 +849,8 @@/@@ -849,7 +849,9 @@/' "$PATCH_2708"
+    sed -i 's/\(^ \tDEV_PATH_DSA,$\)/\1\n \tDEV_PATH_MTK_WDMA,/' "$PATCH_2708"
+    echo "已修复 999-2708 补丁上下文（添加 DEV_PATH_MTK_WDMA 上下文行）"
+  else
+    echo "999-2708 补丁已包含 DEV_PATH_MTK_WDMA，跳过修复"
+  fi
+else
+  echo "提示：未找到 999-2708 补丁（非 5.4 内核，跳过）"
 fi
 
 echo "MT7981 预处理完成！"

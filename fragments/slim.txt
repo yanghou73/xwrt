@@ -1,8 +1,8 @@
 # ============================================================
 # 精简模式片段 — 禁用非必要服务，提升运行速度
 # 适用：RAM 受限设备（如 WR30U 256MB）
-# 保留：OpenClash、Lucky、基础路由、LuCI 管理、SSH
-# 禁用：SmartDNS、iStore、Samba4、磁盘/USB/iOS 工具、重型开发工具
+# 保留：OpenClash、基础路由、LuCI 管理、SSH
+# 禁用：SmartDNS、iStore、Samba4、Lucky、磁盘/USB/iOS 工具、重型开发工具
 # 拼接顺序：在 general.txt / devtools.txt 之后，确保覆盖
 # ============================================================
 
@@ -10,6 +10,9 @@
 # OpenClash 内置 DNS 处理，无需额外 DNS 服务
 CONFIG_PACKAGE_luci-app-smartdns=n
 CONFIG_PACKAGE_smartdns=n
+
+# --- Lucky（端口转发/DDNS，运行不稳定）---
+CONFIG_PACKAGE_luci-app-lucky=n
 
 # --- iStore 应用商店 ---
 # 后台守护进程，占用 RAM，可后续按需 opkg 安装

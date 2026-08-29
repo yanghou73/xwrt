@@ -85,10 +85,9 @@ if [ "$SLIM" != "true" ]; then
 fi
 
 # ============================================================
-# Lucky（端口转发/DDNS/定时重启等）
-# 注意：tty228/luci-app-lucky 已删除，改用 gdy666 仓库
+# Lucky（已移除：运行不稳定）
 # ============================================================
-UPDATE_PACKAGE "lucky" "gdy666/luci-app-lucky" "main"
+# UPDATE_PACKAGE "lucky" "gdy666/luci-app-lucky" "main"
 
 # ============================================================
 # iStore 应用商店

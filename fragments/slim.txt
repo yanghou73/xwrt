@@ -2,7 +2,7 @@
 # 精简模式片段 — 禁用非必要服务，提升运行速度
 # 适用：RAM 受限设备（如 WR30U 256MB）
 # 保留：OpenClash、基础路由、LuCI 管理、SSH
-# 禁用：SmartDNS、iStore、Samba4、Lucky、磁盘/USB/iOS 工具、重型开发工具
+# 禁用：SmartDNS、iStore、Samba4、Lucky、重型开发工具
 # 拼接顺序：在 general.txt / devtools.txt 之后，确保覆盖
 # ============================================================
 
@@ -42,46 +42,6 @@ CONFIG_PACKAGE_luci-app-gecoosac=n
 # --- WolPlus ---
 # 基础 WoL（luci-app-wol）已足够
 CONFIG_PACKAGE_luci-app-wolplus=n
-
-# --- 磁盘工具（WR30U 无 SATA/USB，不需要）---
-CONFIG_PACKAGE_blkid=n
-CONFIG_PACKAGE_lsblk=n
-CONFIG_PACKAGE_fdisk=n
-CONFIG_PACKAGE_cfdisk=n
-CONFIG_PACKAGE_cgdisk=n
-CONFIG_PACKAGE_gdisk=n
-CONFIG_PACKAGE_sfdisk=n
-CONFIG_PACKAGE_sgdisk=n
-CONFIG_PACKAGE_smartmontools=n
-CONFIG_PACKAGE_smartmontools-drivedb=n
-CONFIG_PACKAGE_exfat-fsck=n
-CONFIG_PACKAGE_exfat-mkfs=n
-CONFIG_PACKAGE_libnvme=n
-CONFIG_PACKAGE_nvme-cli=n
-CONFIG_PACKAGE_mmc-utils=n
-CONFIG_PACKAGE_nand-utils=n
-CONFIG_PACKAGE_automount=n
-
-# --- USB 工具（WR30U 无 USB 接口）---
-CONFIG_PACKAGE_kmod-usb3=n
-CONFIG_PACKAGE_usbutils=n
-CONFIG_PACKAGE_usb-modeswitch=n
-CONFIG_PACKAGE_kmod-scsi-core=n
-
-# --- iOS 工具 ---
-CONFIG_PACKAGE_libimobiledevice=n
-CONFIG_PACKAGE_usbmuxd=n
-
-# --- 文件系统模块（无 NAS/USB 需求）---
-CONFIG_PACKAGE_kmod-fs-btrfs=n
-CONFIG_PACKAGE_kmod-fs-autofs4=n
-CONFIG_PACKAGE_kmod-fs-vfat=n
-CONFIG_PACKAGE_kmod-fs-ksmbd=n
-CONFIG_PACKAGE_kmod-fuse=n
-
-# --- SATA/ATA 驱动（WR30U 无 SATA 接口）---
-CONFIG_PACKAGE_kmod-ata-ahci=n
-CONFIG_PACKAGE_kmod-ata-core=n
 
 # --- 重型开发工具（保留 bash/ssh/curl/nano/htop，其余靠 busybox）---
 CONFIG_PACKAGE_strace=n

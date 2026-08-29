@@ -80,7 +80,9 @@ rm -rfv small/sing-box
 # ============================================================
 # 网络测速
 # ============================================================
-UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
+if [ "$SLIM" != "true" ]; then
+  UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
+fi
 
 # ============================================================
 # Lucky（端口转发/DDNS/定时重启等）
@@ -91,7 +93,9 @@ UPDATE_PACKAGE "lucky" "gdy666/luci-app-lucky" "main"
 # ============================================================
 # iStore 应用商店
 # ============================================================
-UPDATE_PACKAGE "istore" "linkease/istore" "main"
+if [ "$SLIM" != "true" ]; then
+  UPDATE_PACKAGE "istore" "linkease/istore" "main"
+fi
 
 # ============================================================
 # Tailscale（远程访问/虚拟组网）
@@ -105,4 +109,5 @@ UPDATE_PACKAGE "istore" "linkease/istore" "main"
 # 3. 脚本在 package/ 目录下执行，路径用 ../feeds/
 # 4. 不自动更新 sing-box 版本，避免 Go 版本冲突
 # 5. lucky 和 istore 需要手动 clone，feeds 中没有
+# 6. SLIM=true 时跳过 netspeedtest/istore 克隆，减少编译时间和固件体积
 # ============================================================

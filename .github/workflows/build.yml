@@ -38,6 +38,10 @@ on:
         description: '包含开发工具（bash/ssh/strace/tcpdump/ttyd）'
         type: boolean
         default: true
+      slim:
+        description: '精简模式（禁用lucky/istore/smartdns/samba4等非必要服务，提升运行速度）'
+        type: boolean
+        default: false
       # x64 专属选项
       x64_variant:
         description: 'x64 固件规模（仅 x64 有效）'
@@ -167,6 +171,7 @@ jobs:
       common_script: ${{ needs.resolve.outputs.common_script }}
       proxy: ${{ inputs.proxy }}
       devtools: ${{ inputs.devtools }}
+      slim: ${{ inputs.slim }}
       x64_variant: ${{ inputs.x64_variant }}
       x64_docker: ${{ inputs.x64_docker }}
       x64_lxc: ${{ inputs.x64_lxc }}

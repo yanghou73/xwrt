@@ -36,6 +36,9 @@ on:
       devtools:
         type: boolean
         required: true
+      slim:
+        type: boolean
+        default: false
       x64_variant:
         type: string
         default: 'standard'
@@ -132,7 +135,7 @@ jobs:
         run: |
           cd "$SOURCE_DIR/package/"
           chmod +x $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
-          X64_VARIANT="${{ inputs.x64_variant }}" bash $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
+          X64_VARIANT="${{ inputs.x64_variant }}" SLIM="${{ inputs.slim }}" bash $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
 
       - name: Post-processing
         run: |
@@ -163,7 +166,12 @@ jobs:
           if [ "${{ inputs.devtools }}" == "true" ]; then
             cat $GITHUB_WORKSPACE/fragments/devtools.txt >> .config
           fi
-          
+
+          # 精简模式（覆盖禁用非必要服务，放在最后确保覆盖前面的配置）
+          if [ "${{ inputs.slim }}" == "true" ]; then
+            cat $GITHUB_WORKSPACE/fragments/slim.txt >> .config
+          fi
+
           # x64 专属
           if [ "${{ inputs.platform }}" == "x64" ]; then
             if [ "${{ inputs.x64_variant }}" == "full" ]; then
@@ -191,6 +199,7 @@ jobs:
           echo "设备: ${{ inputs.devicetype }}"
           echo "代理: ${{ inputs.proxy }}"
           echo "开发工具: ${{ inputs.devtools }}"
+          echo "精简模式: ${{ inputs.slim }}"
 
       - name: Apply settings (IP, theme, etc.)
         run: |
@@ -344,6 +353,7 @@ jobs:
             | **设备** | ${{ inputs.devicetype }} |
             | **代理插件** | ${{ inputs.proxy }} |
             | **开发工具** | ${{ inputs.devtools }} |
+            | **精简模式** | ${{ inputs.slim }} |
             | **LAN IP** | ${{ inputs.wrt_ip }} |
             | **主题** | ${{ inputs.theme }} |
             

@@ -1,0 +1,38 @@
+# ============================================================
+# x64 精简恢复片段 — 恢复 slim.txt 中禁用但 x64 需要的配置
+# 拼接顺序：在 slim.txt 之后，覆盖 slim.txt 的禁用项
+# 仅对 x64 平台生效（core.yml 中条件拼接）
+# ============================================================
+
+# --- USB 驱动（x64 有 USB 接口）---
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_usbutils=y
+CONFIG_PACKAGE_usb-modeswitch=y
+CONFIG_PACKAGE_kmod-scsi-core=y
+
+# --- 磁盘工具（x64 有 SATA/NVMe/USB 存储）---
+CONFIG_PACKAGE_blkid=y
+CONFIG_PACKAGE_lsblk=y
+CONFIG_PACKAGE_fdisk=y
+CONFIG_PACKAGE_cfdisk=y
+CONFIG_PACKAGE_sfdisk=y
+CONFIG_PACKAGE_smartmontools=y
+CONFIG_PACKAGE_smartmontools-drivedb=y
+
+# --- 文件系统模块（x64 需要挂载各种分区）---
+CONFIG_PACKAGE_kmod-fs-btrfs=y
+CONFIG_PACKAGE_kmod-fs-autofs4=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-ksmbd=y
+CONFIG_PACKAGE_kmod-fuse=y
+
+# --- SATA/ATA 驱动（x64 有 SATA 接口）---
+CONFIG_PACKAGE_kmod-ata-ahci=y
+CONFIG_PACKAGE_kmod-ata-core=y
+
+# --- iOS 工具（x64 USB 接口可能需要）---
+CONFIG_PACKAGE_libimobiledevice=y
+CONFIG_PACKAGE_usbmuxd=y
+
+# --- automount（x64 自动挂载 USB 存储）---
+CONFIG_PACKAGE_automount=y

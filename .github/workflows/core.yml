@@ -189,6 +189,10 @@ jobs:
             if [ "${{ inputs.x64_homeproxy }}" == "true" ]; then
               cat $GITHUB_WORKSPACE/fragments/x64-homeproxy.txt >> .config
             fi
+            # x64 精简恢复：在 slim.txt 之后拼接，恢复 USB/SATA/磁盘/文件系统配置
+            if [ "${{ inputs.slim }}" == "true" ]; then
+              cat $GITHUB_WORKSPACE/fragments/x64-slim.txt >> .config
+            fi
             echo "x64 文件系统将在 defconfig 后设置: ${{ inputs.x64_filesystem }}"
           fi
           

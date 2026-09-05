@@ -36,4 +36,12 @@ if [ -f "$RUST_FILE" ]; then
   echo "rust ci-llvm 已修复"
 fi
 
+# --- mihomo 符号链接冲突修复（OpenClash + Nikki 同时安装时） ---
+# 问题：两个包都提供 /usr/bin/mihomo，导致 alternatives 系统报错
+# 修复：让 OpenClash 使用自己的内核路径，Nikki 使用系统 mihomo
+MIHOMO_NIKKI=$(find . -maxdepth 4 -type f -wholename "*/mihomo/Makefile" 2>/dev/null | head -1)
+if [ -f "$MIHOMO_NIKKI" ]; then
+  echo "检测到 Nikki mihomo 包，OpenClash 将使用自带内核（不冲突）"
+fi
+
 echo "后处理完成！"

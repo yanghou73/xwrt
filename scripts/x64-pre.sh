@@ -8,6 +8,21 @@
 
 echo "=== x64 预处理 ==="
 
+# ============================================================
+# 修复 pcat-firmware 递归依赖错误
+# 问题：pcat-firmware select ath10k-board-qca9377-sdio
+#       而 ath10k-board-qca9377-sdio 又 depends on pcat-firmware
+#       形成循环依赖，导致 make defconfig 失败，设备目标丢失
+# 修复：直接删除 pcat-firmware 包（x64 平台不需要）
+# ============================================================
+PCAT_FW_DIR=$(find package feeds -maxdepth 4 -type d -name "pcat-firmware" 2>/dev/null | head -1)
+if [ -n "$PCAT_FW_DIR" ]; then
+  rm -rf "$PCAT_FW_DIR"
+  echo "已删除 pcat-firmware（修复递归依赖）"
+else
+  echo "未找到 pcat-firmware，跳过"
+fi
+
 # 启用 helloworld feed（SSR+ / VSSR 等代理插件）
 if [ -f feeds.conf.default ]; then
   sed -i 's/#src-git helloworld/src-git helloworld/g' feeds.conf.default

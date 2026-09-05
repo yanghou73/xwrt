@@ -84,6 +84,12 @@ rm -rfv small/shadowsocks-rust
 # ============================================================
 if [ "$SLIM" != "true" ]; then
   UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
+  # 修复 luci-app-netspeedtest 依赖 python3-pkg-resources（lede/immortalwrt 中包名是 python3-setuptools）
+  NSTS_MAKEFILE=$(find . -path "*/luci-app-netspeedtest/Makefile" 2>/dev/null | head -1)
+  if [ -n "$NSTS_MAKEFILE" ]; then
+    sed -i 's/python3-pkg-resources/python3-setuptools/g' "$NSTS_MAKEFILE"
+    echo "已修复 netspeedtest 依赖：python3-pkg-resources → python3-setuptools"
+  fi
 fi
 
 # ============================================================

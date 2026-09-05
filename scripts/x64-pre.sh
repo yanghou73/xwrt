@@ -32,4 +32,20 @@ if [ -f feeds.conf.default ]; then
   fi
 fi
 
+# 创建 files/ overlay：将 Docker 菜单从「服务」子菜单移至侧边栏顶级菜单
+mkdir -p files/etc/uci-defaults
+cat > files/etc/uci-defaults/99-docker-menu <<'EOFSCRIPT'
+#!/bin/sh
+# 将 dockerman 菜单从 admin/services/dockerman 改为 admin/docker（侧边栏顶级菜单）
+MENU_FILE="/usr/share/luci/menu.d/luci-app-dockerman.json"
+if [ -f "$MENU_FILE" ]; then
+  sed -i 's|admin/services/dockerman|admin/docker|g' "$MENU_FILE"
+  sed -i 's|"Dockerman JS"|"Docker"|' "$MENU_FILE"
+  rm -rf /tmp/luci-* 2>/dev/null
+fi
+exit 0
+EOFSCRIPT
+chmod +x files/etc/uci-defaults/99-docker-menu
+echo "已创建 Docker 菜单自定义 overlay"
+
 echo "x64 预处理完成！"

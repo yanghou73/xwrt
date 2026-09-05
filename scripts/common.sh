@@ -61,12 +61,14 @@ git clone --depth=1 https://github.com/kenzok8/small.git
 # ⚠️  重要：删除有问题的包
 # luci-app-fchomo: 递归依赖导致 make defconfig 失败
 # luci-app-passwall2/xray-core/geoview/v2ray-geodata/sing-box: passwall2 相关 Go 包
+# shadowsocks-rust: Rust 编译耗内存，GitHub Actions 易 OOM
 rm -rfv small/luci-app-fchomo
 rm -rfv small/luci-app-passwall2
 rm -rfv small/xray-core
 rm -rfv small/geoview
 rm -rfv small/v2ray-geodata
 rm -rfv small/sing-box
+rm -rfv small/shadowsocks-rust
 
 # ============================================================
 # DNS

@@ -1,14 +1,21 @@
 # ============================================================
-# 代理片段 — OpenClash + PassWall + PassWall2（全套）
+# 代理片段 — OpenClash + PassWall
 # 验证状态：✅ WR30U 已验证
 # ============================================================
 
 CONFIG_PACKAGE_luci-app-openclash=y
 CONFIG_PACKAGE_coreutils-nohup=y
 CONFIG_PACKAGE_luci-app-passwall=y
-CONFIG_PACKAGE_luci-app-passwall2=y
+CONFIG_PACKAGE_luci-app-passwall2=n
+CONFIG_PACKAGE_shadowsocks-rust-sslocal=n
+CONFIG_PACKAGE_shadowsocks-rust-ssredir=n
+CONFIG_PACKAGE_shadowsocks-rust-ssserver=n
+CONFIG_PACKAGE_shadowsocks-rust-ssmanager=n
+CONFIG_PACKAGE_shadowsocks-rust-ssurl=n
+CONFIG_PACKAGE_shadowsocks-rust-ssnames=n
 
 # 注意：
-# 1. both 模式包含所有代理插件，固件体积较大
-# 2. openclash 和 passwall 同时运行可能端口冲突
-# 3. 建议实际使用时择一启用
+# 1. passwall2 已移除（shadowsocks-rust 编译失败 + 之前不稳定）
+# 2. shadowsocks-rust 全系列已禁用（Rust 编译耗内存，GitHub Actions 易 OOM）
+# 3. openclash 和 passwall 同时运行可能端口冲突
+# 4. 建议实际使用时择一启用

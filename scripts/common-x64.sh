@@ -49,7 +49,8 @@ UPDATE_PACKAGE() {
 # ============================================================
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
-UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
+# passwall2 已禁用：shadowsocks-rust 编译失败 + 之前不稳定
+# UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 timeout 120 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git || true
 
 # ============================================================

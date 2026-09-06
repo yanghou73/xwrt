@@ -53,19 +53,8 @@ UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
 # UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 timeout 120 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git || true
 
-# ============================================================
-# 清理 passwall-packages 中有问题的 Go 包
-# xray-core / geoview / sing-box 等：Go 语言包，编译耗时长且易失败
-# shadowsocks-rust：Rust 编译耗内存，GitHub Actions 易 OOM
-# ============================================================
-if [ -d "openwrt-passwall-packages" ]; then
-  rm -rfv openwrt-passwall-packages/xray-core 2>/dev/null || true
-  rm -rfv openwrt-passwall-packages/geoview 2>/dev/null || true
-  rm -rfv openwrt-passwall-packages/sing-box 2>/dev/null || true
-  rm -rfv openwrt-passwall-packages/shadowsocks-rust 2>/dev/null || true
-  rm -rfv openwrt-passwall-packages/v2ray-geodata 2>/dev/null || true
-  echo "已清理 passwall-packages 中有问题的 Go/Rust 包"
-fi
+# 注意：passwall-packages 的 Go/Rust 包清理已移至 post.sh 统一处理
+# （post.sh 在 feeds update 之后执行，可以覆盖所有来源）
 
 # ============================================================
 # iStore 应用商店（standard + full 都执行）
@@ -92,12 +81,7 @@ UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master"
 # ============================================================
 UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "master"
 UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
-# 修复 luci-app-netspeedtest 依赖 python3-pkg-resources（lede 中包名是 python3-setuptools）
-NSTS_MAKEFILE=$(find . -path "*/luci-app-netspeedtest/Makefile" 2>/dev/null | head -1)
-if [ -n "$NSTS_MAKEFILE" ]; then
-  sed -i 's/python3-pkg-resources/python3-setuptools/g' "$NSTS_MAKEFILE"
-  echo "已修复 netspeedtest 依赖：python3-pkg-resources → python3-setuptools"
-fi
+# netspeedtest 依赖修复已移至 post.sh
 # bandwidthd 是 lede 内置包，只 clone LuCI 面板，不删官方源
 timeout 120 git clone --depth=1 --single-branch --branch master "https://github.com/AlexZhuo/luci-app-bandwidthd.git" || {
   echo "警告：克隆失败 AlexZhuo/luci-app-bandwidthd (master)，跳过"

@@ -27,10 +27,20 @@ fi
 # 两个包都 PROVIDES:=mihomo 且互相 CONFLICTS，导致 Kconfig 死循环
 # 修复：删除 mihomo-alpha，只保留 mihomo-meta
 # ============================================================
-MIHOMO_ALPHA=$(find feeds -maxdepth 4 -type d -name "mihomo-alpha" 2>/dev/null | head -1)
+MIHOMO_ALPHA=$(find feeds package -maxdepth 5 -type d -name "mihomo-alpha" 2>/dev/null | head -1)
 if [ -n "$MIHOMO_ALPHA" ]; then
   rm -rf "$MIHOMO_ALPHA"
   echo "已删除 mihomo-alpha（修复 mihomo 递归依赖）"
+fi
+
+# ============================================================
+# 2b. 修补 luci-app-nikki 依赖（nikki 主程序闭源，用 mihomo-meta 替代）
+# ============================================================
+NIKKI_MAKEFILE=$(find feeds package -maxdepth 5 -path "*/luci-app-nikki/Makefile" 2>/dev/null | head -1)
+if [ -n "$NIKKI_MAKEFILE" ]; then
+  # 将依赖从 +nikki 改为 +mihomo（nikki 主程序是闭源预编译的）
+  sed -i 's/LUCI_DEPENDS:=+luci-base +nikki/LUCI_DEPENDS:=+luci-base +mihomo +firewall4 +kmod-nft-tproxy/' "$NIKKI_MAKEFILE"
+  echo "已修补 luci-app-nikki 依赖（nikki → mihomo）"
 fi
 
 # ============================================================

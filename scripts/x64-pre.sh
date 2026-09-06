@@ -24,6 +24,8 @@ if [ -f feeds.conf.default ]; then
 fi
 
 # 添加 Nikki feed
+# 注意：nikki 主程序是闭源预编译的，feed 中只有 luci-app-nikki + mihomo-alpha/meta
+# luci-app-nikki 依赖 nikki 包，需在 post.sh 中修补依赖
 if [ -f feeds.conf.default ]; then
   if ! grep -q "nikkinikki" feeds.conf.default; then
     echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main" >> feeds.conf.default
@@ -31,13 +33,9 @@ if [ -f feeds.conf.default ]; then
   fi
 fi
 
-# 添加 HomeProxy feed
-if [ -f feeds.conf.default ]; then
-  if ! grep -q "immortalwrt/homeproxy" feeds.conf.default; then
-    echo "src-git homeproxy https://github.com/immortalwrt/homeproxy.git" >> feeds.conf.default
-    echo "已添加 homeproxy feed"
-  fi
-fi
+# 注意：homeproxy 不使用 feed 方式
+# immortalwrt/homeproxy 仓库根目录就是一个 luci-app-homeproxy 包，非标准 feed 结构
+# 改为在 common-x64.sh 中直接 clone 到 package/ 目录
 
 # Docker 菜单自定义 overlay
 mkdir -p files/etc/uci-defaults

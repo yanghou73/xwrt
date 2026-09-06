@@ -104,4 +104,14 @@ UPDATE_PACKAGE "serverchan" "tty228/luci-app-serverchan" "master"
 UPDATE_PACKAGE "easytier" "EasyTier/luci-app-easytier" "main"
 UPDATE_PACKAGE "npc" "ghosthgytop/luci-app-npc" "master"
 
+# ============================================================
+# HomeProxy（直接 clone，不是标准 feed 结构）
+# ============================================================
+if [ ! -d "homeproxy" ]; then
+  timeout 120 git clone --depth=1 https://github.com/immortalwrt/homeproxy.git || {
+    echo "警告：克隆 homeproxy 失败，跳过"
+  }
+  echo "已添加 homeproxy（直接 clone 方式）"
+fi
+
 echo "full 模式：精简实用包拉取完成"

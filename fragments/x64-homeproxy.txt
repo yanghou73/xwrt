@@ -17,3 +17,4 @@ CONFIG_PACKAGE_luci-app-homeproxy=y
 # 1. homeproxy 强依赖 sing-box，Go 版本不兼容时会编译失败
 # 2. 如编译失败，可尝试关闭此选项
 # 3. 与 OpenClash / PassWall 同时使用可能端口冲突
+

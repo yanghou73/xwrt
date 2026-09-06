@@ -49,12 +49,8 @@ UPDATE_PACKAGE() {
 # ============================================================
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
-# passwall2 已禁用：shadowsocks-rust 编译失败 + 之前不稳定
-# UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
+# passwall2 已移除
 timeout 120 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git || true
-
-# 注意：passwall-packages 的 Go/Rust 包清理已移至 post.sh 统一处理
-# （post.sh 在 feeds update 之后执行，可以覆盖所有来源）
 
 # ============================================================
 # iStore 应用商店（standard + full 都执行）
@@ -79,9 +75,8 @@ UPDATE_PACKAGE "adguardhome" "rufengsuixing/luci-app-adguardhome" "master"
 # ============================================================
 # 系统工具
 # ============================================================
-UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "master"
+UPDATE_PACKAGE "advanced" "sirpdboy/luci-app-advanced" "main"
 UPDATE_PACKAGE "netspeedtest" "sirpdboy/netspeedtest" "main" "" "homebox ookla-speedtest"
-# netspeedtest 依赖修复已移至 post.sh
 # bandwidthd 是 lede 内置包，只 clone LuCI 面板，不删官方源
 timeout 120 git clone --depth=1 --single-branch --branch master "https://github.com/AlexZhuo/luci-app-bandwidthd.git" || {
   echo "警告：克隆失败 AlexZhuo/luci-app-bandwidthd (master)，跳过"
@@ -99,13 +94,13 @@ UPDATE_PACKAGE "bearDropper" "NateLol/luci-app-bearDropper" "master"
 # ============================================================
 # 网络应用
 # ============================================================
-UPDATE_PACKAGE "onliner" "selfcan/luci-app-onliner" "master"
+UPDATE_PACKAGE "onliner" "selfcan/luci-app-onliner" "main"
 UPDATE_PACKAGE "serverchan" "tty228/luci-app-serverchan" "master"
 UPDATE_PACKAGE "easytier" "EasyTier/luci-app-easytier" "main"
 UPDATE_PACKAGE "npc" "ghosthgytop/luci-app-npc" "master"
 
 # ============================================================
-# HomeProxy（直接 clone，不是标准 feed 结构）
+# HomeProxy（直接 clone，仓库非标准 feed 结构）
 # ============================================================
 if [ ! -d "homeproxy" ]; then
   timeout 120 git clone --depth=1 https://github.com/immortalwrt/homeproxy.git || {
@@ -115,3 +110,4 @@ if [ ! -d "homeproxy" ]; then
 fi
 
 echo "full 模式：精简实用包拉取完成"
+

@@ -1,4 +1,4 @@
-name: Core Build
+﻿name: Core Build
 
 on:
   workflow_call:
@@ -36,9 +36,6 @@ on:
       devtools:
         type: boolean
         required: true
-      slim:
-        type: boolean
-        default: false
       x64_variant:
         type: string
         default: 'standard'
@@ -57,10 +54,6 @@ on:
       x64_filesystem:
         type: string
         default: 'ext4'
-      source_commit:
-        type: string
-        default: ''
-        description: '固定源码 commit（空则使用分支最新）'
       wrt_ip:
         type: string
         default: '192.168.1.1'
@@ -70,6 +63,10 @@ on:
       firmware_pattern:
         type: string
         required: true
+      source_commit:
+        type: string
+        default: ''
+        description: '固定源码 commit（空则使用分支最新）'
       cache:
         type: boolean
         default: true
@@ -143,36 +140,11 @@ jobs:
           chmod +x $GITHUB_WORKSPACE/scripts/${{ inputs.pre_script }}
           bash $GITHUB_WORKSPACE/scripts/${{ inputs.pre_script }}
 
-      - name: Update additional feeds
-        run: |
-          cd "$SOURCE_DIR"
-          # pre_script 可能添加了新的 feed（如 nikki/homeproxy/helloworld）
-          # 需要再次更新和安装 feeds
-          echo "=== feeds.conf.default 内容 ==="
-          cat feeds.conf.default
-          echo "=== 二次 feeds update ==="
-          ./scripts/feeds update -a
-          echo "=== 强制安装所有 feed 包 ==="
-          # -f 强制重新安装，确保新添加的 feed 包被正确安装
-          ./scripts/feeds install -a -f
-          echo "=== feeds/nikki 实际目录 ==="
-          ls feeds/nikki/ 2>/dev/null || echo "feeds/nikki 不存在"
-          echo "=== feeds/homeproxy 实际目录 ==="
-          ls feeds/homeproxy/ 2>/dev/null || echo "feeds/homeproxy 不存在"
-          echo "=== nikki feed 已安装包 ==="
-          ls package/feeds/nikki/ 2>/dev/null || echo "nikki feed 未安装"
-          echo "=== homeproxy feed 已安装包 ==="
-          ls package/feeds/homeproxy/ 2>/dev/null || echo "homeproxy feed 未安装"
-          echo "=== 搜索所有 nikki 包 ==="
-          find package -maxdepth 4 -name "*nikki*" -type d 2>/dev/null || true
-          echo "=== 搜索所有 homeproxy 包 ==="
-          find package -maxdepth 4 -name "*homeproxy*" -type d 2>/dev/null || true
-
       - name: Install custom packages
         run: |
           cd "$SOURCE_DIR/package/"
           chmod +x $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
-          X64_VARIANT="${{ inputs.x64_variant }}" SLIM="${{ inputs.slim }}" bash $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
+          X64_VARIANT="${{ inputs.x64_variant }}" bash $GITHUB_WORKSPACE/scripts/${{ inputs.common_script }}
 
       - name: Post-processing
         run: |
@@ -203,12 +175,7 @@ jobs:
           if [ "${{ inputs.devtools }}" == "true" ]; then
             cat $GITHUB_WORKSPACE/fragments/devtools.txt >> .config
           fi
-
-          # 精简模式（覆盖禁用非必要服务，放在最后确保覆盖前面的配置）
-          if [ "${{ inputs.slim }}" == "true" ]; then
-            cat $GITHUB_WORKSPACE/fragments/slim.txt >> .config
-          fi
-
+          
           # x64 专属
           if [ "${{ inputs.platform }}" == "x64" ]; then
             if [ "${{ inputs.x64_variant }}" == "full" ]; then
@@ -226,10 +193,6 @@ jobs:
             if [ "${{ inputs.x64_homeproxy }}" == "true" ]; then
               cat $GITHUB_WORKSPACE/fragments/x64-homeproxy.txt >> .config
             fi
-            # x64 精简恢复：在 slim.txt 之后拼接，恢复 USB/SATA/磁盘/文件系统配置
-            if [ "${{ inputs.slim }}" == "true" ]; then
-              cat $GITHUB_WORKSPACE/fragments/x64-slim.txt >> .config
-            fi
             echo "x64 文件系统将在 defconfig 后设置: ${{ inputs.x64_filesystem }}"
           fi
           
@@ -240,7 +203,6 @@ jobs:
           echo "设备: ${{ inputs.devicetype }}"
           echo "代理: ${{ inputs.proxy }}"
           echo "开发工具: ${{ inputs.devtools }}"
-          echo "精简模式: ${{ inputs.slim }}"
 
       - name: Apply settings (IP, theme, etc.)
         run: |
@@ -275,23 +237,11 @@ jobs:
             make defconfig
           fi
           
-          # 修复内核 crypto 模块依赖问题
-          # kmod-crypto-lib-chacha20poly1305 依赖 libpoly1305.ko 但 Kconfig 未声明
-          # 直接禁用该模块（chacha20poly1305 一般由 wireguard/加密模块内置提供）
-          if grep -q "CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305=y" .config; then
-            sed -i 's/CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305=y/# CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305 is not set/' .config
-            make defconfig
-            echo "已禁用 kmod-crypto-lib-chacha20poly1305（修复缺失 libpoly1305.ko）"
-          fi
-          
           cp .config build.config
           echo "=== 设备目标检查 ==="
-          grep -E "CONFIG_TARGET.*DEVICE" build.config || echo "警告: 未找到设备目标配置！"
-          echo "=== 所有 TARGET_ 配置（诊断） ==="
-          grep "^CONFIG_TARGET_" build.config | head -20 || true
+          grep "CONFIG_TARGET_DEVICE" build.config || echo "警告: 未找到设备目标配置！"
           echo "=== 关键包检查 ==="
-          grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd|lucky|nikki|homeproxy|dockerman)=" build.config || true
-          grep -E "CONFIG_PACKAGE_(mihomo|sing-box|docker|dockerd)=" build.config || true
+          grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd|lucky)=" build.config || true
           echo "=== 文件系统检查 ==="
           grep -E "CONFIG_TARGET_ROOTFS_(EXT4FS|SQUASHFS)" build.config || true
 
@@ -345,32 +295,11 @@ jobs:
         if: ${{ !inputs.test_only }}
         run: |
           cd "$SOURCE_DIR"
-          make -j$(nproc) 2>&1 | tee /tmp/build.log; BUILD_EXIT=${PIPESTATUS[0]}
-          if [ $BUILD_EXIT -ne 0 ]; then
-            echo "=== 编译失败，定位错误 ==="
-            # 尝试从日志中提取失败包名（支持多种错误格式）
-            FAILED=""
-            # 格式1: ERROR: package/xxx failed to build
-            FAILED=$(grep -m1 "ERROR:.*failed to build" /tmp/build.log | sed 's/.*ERROR: \(.*\) failed to build.*/\1/' | tr -d ' ')
-            if [ -z "$FAILED" ]; then
-              # 格式2: package/Makefile:xxx: xxx/package/xxx  Error 1
-              FAILED=$(grep -m1 "Error 1" /tmp/build.log | grep -o 'package/[^ ]*' | head -1)
-            fi
-            if [ -z "$FAILED" ]; then
-              # 格式3: 找最后一个 make -C 后面的包
-              FAILED=$(grep "make\[[0-9]*\] -C" /tmp/build.log | tail -1 | sed 's/.*-C //' | awk '{print $1}')
-            fi
-            if [ -n "$FAILED" ]; then
-              echo "失败包: $FAILED"
-              echo "=== 用 V=s 重编译该包 ==="
-              make -j1 V=s "$FAILED/compile" 2>&1 | tail -300 || true
-              make -j1 V=s "$FAILED/install" 2>&1 | tail -200 || true
-            else
-              echo "未找到失败包名，输出最后 200 行日志"
-              tail -200 /tmp/build.log
-            fi
+          make -j$(nproc) || {
+            echo "=== 编译失败，用 V=s 重跑以输出详细错误 ==="
+            make -j1 V=s 2>&1 | tail -200
             exit 1
-          fi
+          }
 
       - name: Organize firmware files
         if: ${{ !inputs.test_only }}
@@ -427,7 +356,6 @@ jobs:
             | **设备** | ${{ inputs.devicetype }} |
             | **代理插件** | ${{ inputs.proxy }} |
             | **开发工具** | ${{ inputs.devtools }} |
-            | **精简模式** | ${{ inputs.slim }} |
             | **LAN IP** | ${{ inputs.wrt_ip }} |
             | **主题** | ${{ inputs.theme }} |
             

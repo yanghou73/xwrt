@@ -136,8 +136,15 @@ jobs:
           cd "$SOURCE_DIR"
           # pre_script 可能添加了新的 feed（如 nikki/homeproxy/helloworld）
           # 需要再次更新和安装 feeds
+          echo "=== feeds.conf.default 内容 ==="
+          cat feeds.conf.default
+          echo "=== 二次 feeds update ==="
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+          echo "=== nikki feed 包列表 ==="
+          ls package/feeds/nikki/ 2>/dev/null || echo "nikki feed 不存在"
+          echo "=== homeproxy feed 包列表 ==="
+          ls package/feeds/homeproxy/ 2>/dev/null || echo "homeproxy feed 不存在"
 
       - name: Install custom packages
         run: |
@@ -248,11 +255,12 @@ jobs:
           
           cp .config build.config
           echo "=== 设备目标检查 ==="
-          grep "CONFIG_TARGET_DEVICE" build.config || echo "警告: 未找到设备目标配置！"
+          grep -E "CONFIG_TARGET.*DEVICE" build.config || echo "警告: 未找到设备目标配置！"
           echo "=== 所有 TARGET_ 配置（诊断） ==="
           grep "^CONFIG_TARGET_" build.config | head -20 || true
           echo "=== 关键包检查 ==="
-          grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd|lucky)=" build.config || true
+          grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd|lucky|nikki|homeproxy|dockerman)=" build.config || true
+          grep -E "CONFIG_PACKAGE_(mihomo|sing-box|docker|dockerd)=" build.config || true
           echo "=== 文件系统检查 ==="
           grep -E "CONFIG_TARGET_ROOTFS_(EXT4FS|SQUASHFS)" build.config || true
 

@@ -57,6 +57,10 @@ on:
       x64_filesystem:
         type: string
         default: 'ext4'
+      source_commit:
+        type: string
+        default: ''
+        description: '固定源码 commit（空则使用分支最新）'
       wrt_ip:
         type: string
         default: '192.168.1.1'
@@ -100,6 +104,14 @@ jobs:
         run: |
           git clone --depth=1 --single-branch --branch ${{ inputs.branch }} "${{ inputs.repo }}" "$SOURCE_DIR"
           cd "$SOURCE_DIR"
+          
+          # 如果指定了 source_commit，则切换到指定 commit
+          if [ -n "${{ inputs.source_commit }}" ]; then
+            echo "切换到指定 commit: ${{ inputs.source_commit }}"
+            git fetch --depth=1 origin ${{ inputs.source_commit }}
+            git checkout ${{ inputs.source_commit }}
+          fi
+          
           echo "SOURCE_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
           echo "源码仓库: ${{ inputs.repo }}"
           echo "分支: ${{ inputs.branch }}"

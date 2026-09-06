@@ -75,6 +75,10 @@ on:
           - ext4
           - squashfs
           - both
+      source_commit:
+        description: '固定源码 commit（空则使用分支最新，建议用已知可编译的版本）'
+        type: string
+        default: ''
       # 通用选项
       wrt_ip:
         description: '路由器 LAN IP 地址'
@@ -178,6 +182,7 @@ jobs:
       x64_nikki: ${{ inputs.x64_nikki }}
       x64_homeproxy: ${{ inputs.x64_homeproxy }}
       x64_filesystem: ${{ inputs.x64_filesystem }}
+      source_commit: ${{ inputs.source_commit }}
       wrt_ip: ${{ inputs.wrt_ip }}
       theme: ${{ inputs.theme }}
       firmware_pattern: ${{ needs.resolve.outputs.firmware_pattern }}

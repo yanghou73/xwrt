@@ -140,11 +140,21 @@ jobs:
           cat feeds.conf.default
           echo "=== 二次 feeds update ==="
           ./scripts/feeds update -a
-          ./scripts/feeds install -a
-          echo "=== nikki feed 包列表 ==="
-          ls package/feeds/nikki/ 2>/dev/null || echo "nikki feed 不存在"
-          echo "=== homeproxy feed 包列表 ==="
-          ls package/feeds/homeproxy/ 2>/dev/null || echo "homeproxy feed 不存在"
+          echo "=== 强制安装所有 feed 包 ==="
+          # -f 强制重新安装，确保新添加的 feed 包被正确安装
+          ./scripts/feeds install -a -f
+          echo "=== feeds/nikki 实际目录 ==="
+          ls feeds/nikki/ 2>/dev/null || echo "feeds/nikki 不存在"
+          echo "=== feeds/homeproxy 实际目录 ==="
+          ls feeds/homeproxy/ 2>/dev/null || echo "feeds/homeproxy 不存在"
+          echo "=== nikki feed 已安装包 ==="
+          ls package/feeds/nikki/ 2>/dev/null || echo "nikki feed 未安装"
+          echo "=== homeproxy feed 已安装包 ==="
+          ls package/feeds/homeproxy/ 2>/dev/null || echo "homeproxy feed 未安装"
+          echo "=== 搜索所有 nikki 包 ==="
+          find package -maxdepth 4 -name "*nikki*" -type d 2>/dev/null || true
+          echo "=== 搜索所有 homeproxy 包 ==="
+          find package -maxdepth 4 -name "*homeproxy*" -type d 2>/dev/null || true
 
       - name: Install custom packages
         run: |

@@ -25,7 +25,7 @@ fi
 # ============================================================
 # 2. 修复 mihomo-alpha / mihomo-meta 递归依赖（nikki feed）
 # 两个包都 PROVIDES:=mihomo 且互相 CONFLICTS，导致 Kconfig 死循环
-# 修复：删除 mihomo-alpha，只保留 mihomo-meta
+# （nikki feed 已禁用，此段保留作备用）
 # ============================================================
 MIHOMO_ALPHA=$(find feeds package -maxdepth 5 -type d -name "mihomo-alpha" 2>/dev/null | head -1)
 if [ -n "$MIHOMO_ALPHA" ]; then
@@ -34,14 +34,13 @@ if [ -n "$MIHOMO_ALPHA" ]; then
 fi
 
 # ============================================================
-# 2b. 修补 luci-app-nikki 依赖（nikki 主程序闭源，用 mihomo-meta 替代）
+# 2b. 修补 luci-app-nikki 依赖（nikki feed 已禁用，此段保留作备用）
 # ============================================================
-NIKKI_MAKEFILE=$(find feeds package -maxdepth 5 -path "*/luci-app-nikki/Makefile" 2>/dev/null | head -1)
-if [ -n "$NIKKI_MAKEFILE" ]; then
-  # 将依赖从 +nikki 改为 +mihomo（nikki 主程序是闭源预编译的）
-  sed -i 's/LUCI_DEPENDS:=+luci-base +nikki/LUCI_DEPENDS:=+luci-base +mihomo +firewall4 +kmod-nft-tproxy/' "$NIKKI_MAKEFILE"
-  echo "已修补 luci-app-nikki 依赖（nikki → mihomo）"
-fi
+# NIKKI_MAKEFILE=$(find feeds package -maxdepth 5 -path "*/luci-app-nikki/Makefile" 2>/dev/null | head -1)
+# if [ -n "$NIKKI_MAKEFILE" ]; then
+#   sed -i 's/LUCI_DEPENDS:=+luci-base +nikki/LUCI_DEPENDS:=+luci-base +mihomo +firewall4 +kmod-nft-tproxy/' "$NIKKI_MAKEFILE"
+#   echo "已修补 luci-app-nikki 依赖（nikki → mihomo）"
+# fi
 
 # ============================================================
 # 3. 清理 helloworld 中有问题的 Rust 包（编译耗内存，GitHub Actions 易 OOM）

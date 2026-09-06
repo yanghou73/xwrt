@@ -263,6 +263,15 @@ jobs:
             make defconfig
           fi
           
+          # 修复内核 crypto 模块依赖问题
+          # kmod-crypto-lib-chacha20poly1305 依赖 libpoly1305.ko 但 Kconfig 未声明
+          # 直接禁用该模块（chacha20poly1305 一般由 wireguard/加密模块内置提供）
+          if grep -q "CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305=y" .config; then
+            sed -i 's/CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305=y/# CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305 is not set/' .config
+            make defconfig
+            echo "已禁用 kmod-crypto-lib-chacha20poly1305（修复缺失 libpoly1305.ko）"
+          fi
+          
           cp .config build.config
           echo "=== 设备目标检查 ==="
           grep -E "CONFIG_TARGET.*DEVICE" build.config || echo "警告: 未找到设备目标配置！"

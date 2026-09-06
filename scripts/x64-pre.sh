@@ -23,15 +23,16 @@ if [ -f feeds.conf.default ]; then
   echo "已启用 helloworld feed"
 fi
 
-# 添加 Nikki feed
-# 注意：nikki 主程序是闭源预编译的，feed 中只有 luci-app-nikki + mihomo-alpha/meta
-# luci-app-nikki 依赖 nikki 包，需在 post.sh 中修补依赖
-if [ -f feeds.conf.default ]; then
-  if ! grep -q "nikkinikki" feeds.conf.default; then
-    echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main" >> feeds.conf.default
-    echo "已添加 nikki feed"
-  fi
-fi
+# Nikki（暂不启用）
+# nikki 主程序是闭源预编译的，无法从源码编译
+# luci-app-nikki 依赖 nikki 包（不存在），会导致 Kconfig 递归依赖错误
+# 后续可考虑用 ipk 方式安装，或改用其他面板
+# if [ -f feeds.conf.default ]; then
+#   if ! grep -q "nikkinikki" feeds.conf.default; then
+#     echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main" >> feeds.conf.default
+#     echo "已添加 nikki feed"
+#   fi
+# fi
 
 # 注意：homeproxy 不使用 feed 方式
 # immortalwrt/homeproxy 仓库根目录就是一个 luci-app-homeproxy 包，非标准 feed 结构

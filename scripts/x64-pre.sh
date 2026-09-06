@@ -63,4 +63,21 @@ EOFSCRIPT
 chmod +x files/etc/uci-defaults/99-docker-menu
 echo "已创建 Docker 菜单自定义 overlay"
 
+# ============================================================
+# 回退 jsonfilter 到 2025-04-18 版本
+# 问题：lede 2026-08-30 更新 jsonfilter 到 2026-03-16 版本后编译失败
+# 修复：回退到上一个已知可编译的版本
+# ============================================================
+JF_MAKEFILE="package/utils/jsonfilter/Makefile"
+if [ -f "$JF_MAKEFILE" ]; then
+  if grep -q "PKG_SOURCE_DATE:=2026-03-16" "$JF_MAKEFILE"; then
+    sed -i 's/PKG_SOURCE_DATE:=2026-03-16/PKG_SOURCE_DATE:=2025-04-18/' "$JF_MAKEFILE"
+    sed -i 's/PKG_SOURCE_VERSION:=b9034210bd331749673416c6bf389cccd4e23610/PKG_SOURCE_VERSION:=8a86fb78235b5d7925b762b7b0934517890cc034/' "$JF_MAKEFILE"
+    sed -i 's/PKG_MIRROR_HASH:=e8616b3eee53c6dd3420a7d800337e13a61e1333dfbd8551b50ab15bafd94a0e/PKG_MIRROR_HASH:=59b78647914855284960630f8e9d716bf09f00ab007cf1e2c1570ae5c55cc64a/' "$JF_MAKEFILE"
+    echo "已回退 jsonfilter 到 2025-04-18（修复编译失败）"
+  else
+    echo "jsonfilter 版本不是 2026-03-16，跳过回退"
+  fi
+fi
+
 echo "x64 预处理完成！"

@@ -131,6 +131,14 @@ jobs:
           chmod +x $GITHUB_WORKSPACE/scripts/${{ inputs.pre_script }}
           bash $GITHUB_WORKSPACE/scripts/${{ inputs.pre_script }}
 
+      - name: Update additional feeds
+        run: |
+          cd "$SOURCE_DIR"
+          # pre_script 可能添加了新的 feed（如 nikki/homeproxy/helloworld）
+          # 需要再次更新和安装 feeds
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
       - name: Install custom packages
         run: |
           cd "$SOURCE_DIR/package/"
@@ -296,11 +304,19 @@ jobs:
         if: ${{ !inputs.test_only }}
         run: |
           cd "$SOURCE_DIR"
-          make -j$(nproc) || {
-            echo "=== 编译失败，用 V=s 重跑以输出详细错误 ==="
-            make -j1 V=s 2>&1 | tail -200
+          make -j$(nproc) 2>&1 | tee /tmp/build.log; BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "=== 编译失败，提取失败包名并仅重编译该包 ==="
+            FAILED=$(grep -m1 "ERROR:.*failed to build" /tmp/build.log | sed 's/.*ERROR: \(.*\) failed to build.*/\1/' | tr -d ' ')
+            if [ -n "$FAILED" ]; then
+              echo "失败包: $FAILED"
+              make -j1 V=s "$FAILED/compile" 2>&1 | tail -300
+            else
+              echo "未找到失败包名，完整 V=s 重跑"
+              timeout 1800 make -j1 V=s 2>&1 | tail -300
+            fi
             exit 1
-          }
+          fi
 
       - name: Organize firmware files
         if: ${{ !inputs.test_only }}

@@ -249,6 +249,8 @@ jobs:
           cp .config build.config
           echo "=== 设备目标检查 ==="
           grep "CONFIG_TARGET_DEVICE" build.config || echo "警告: 未找到设备目标配置！"
+          echo "=== 所有 TARGET_ 配置（诊断） ==="
+          grep "^CONFIG_TARGET_" build.config | head -20 || true
           echo "=== 关键包检查 ==="
           grep -E "CONFIG_PACKAGE_luci-app-(openclash|passwall|passwall2|smartdns|netspeedtest|ttyd|lucky)=" build.config || true
           echo "=== 文件系统检查 ==="

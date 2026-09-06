@@ -80,4 +80,12 @@ if [ -f "$JF_MAKEFILE" ]; then
   fi
 fi
 
+# ============================================================
+# 清理 helloworld 中有问题的包（Rust 编译耗内存，GitHub Actions 易 OOM）
+# ============================================================
+if [ -d "feeds/helloworld" ]; then
+  rm -rfv feeds/helloworld/shadowsocks-rust 2>/dev/null || true
+  echo "已清理 helloworld/shadowsocks-rust（避免 Rust 编译 OOM）"
+fi
+
 echo "x64 预处理完成！"

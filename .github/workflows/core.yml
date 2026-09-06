@@ -306,14 +306,27 @@ jobs:
           cd "$SOURCE_DIR"
           make -j$(nproc) 2>&1 | tee /tmp/build.log; BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "=== 编译失败，提取失败包名并仅重编译该包 ==="
+            echo "=== 编译失败，定位错误 ==="
+            # 尝试从日志中提取失败包名（支持多种错误格式）
+            FAILED=""
+            # 格式1: ERROR: package/xxx failed to build
             FAILED=$(grep -m1 "ERROR:.*failed to build" /tmp/build.log | sed 's/.*ERROR: \(.*\) failed to build.*/\1/' | tr -d ' ')
+            if [ -z "$FAILED" ]; then
+              # 格式2: package/Makefile:xxx: xxx/package/xxx  Error 1
+              FAILED=$(grep -m1 "Error 1" /tmp/build.log | grep -o 'package/[^ ]*' | head -1)
+            fi
+            if [ -z "$FAILED" ]; then
+              # 格式3: 找最后一个 make -C 后面的包
+              FAILED=$(grep "make\[[0-9]*\] -C" /tmp/build.log | tail -1 | sed 's/.*-C //' | awk '{print $1}')
+            fi
             if [ -n "$FAILED" ]; then
               echo "失败包: $FAILED"
-              make -j1 V=s "$FAILED/compile" 2>&1 | tail -300
+              echo "=== 用 V=s 重编译该包 ==="
+              make -j1 V=s "$FAILED/compile" 2>&1 | tail -300 || true
+              make -j1 V=s "$FAILED/install" 2>&1 | tail -200 || true
             else
-              echo "未找到失败包名，完整 V=s 重跑"
-              timeout 1800 make -j1 V=s 2>&1 | tail -300
+              echo "未找到失败包名，输出最后 200 行日志"
+              tail -200 /tmp/build.log
             fi
             exit 1
           fi

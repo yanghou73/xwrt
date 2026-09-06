@@ -105,8 +105,20 @@ jobs:
           # 如果指定了 source_commit，则切换到指定 commit
           if [ -n "${{ inputs.source_commit }}" ]; then
             echo "切换到指定 commit: ${{ inputs.source_commit }}"
-            git fetch --depth=1 origin ${{ inputs.source_commit }}
-            git checkout ${{ inputs.source_commit }}
+            COMMIT="${{ inputs.source_commit }}"
+            # 短 hash（<40字符）需通过 GitHub API 解析为完整 hash
+            if [ ${#COMMIT} -lt 40 ]; then
+              REPO_PATH=$(echo "${{ inputs.repo }}" | sed 's|https://github.com/||; s|\.git$||; s|http://github.com/||')
+              echo "解析短 hash: $REPO_PATH/commits/$COMMIT"
+              COMMIT=$(curl -sf "https://api.github.com/repos/${REPO_PATH}/commits/${COMMIT}" | jq -r '.sha // empty')
+              if [ -z "$COMMIT" ]; then
+                echo "错误：无法解析 commit ${{ inputs.source_commit }}，请检查 hash 或使用完整 40 字符 hash"
+                exit 1
+              fi
+            fi
+            echo "完整 hash: $COMMIT"
+            git fetch --depth=1 origin "$COMMIT"
+            git checkout "$COMMIT"
           fi
           
           echo "SOURCE_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV

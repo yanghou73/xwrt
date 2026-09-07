@@ -51,3 +51,6 @@ CONFIG_PACKAGE_luci-app-istore=y
 
 # --- 测速 ---
 CONFIG_PACKAGE_luci-app-netspeedtest=y
+
+# --- 禁用 baresip（上游递归依赖 bug） ---
+# CONFIG_PACKAGE_baresip is not set
